@@ -3,8 +3,13 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import LoginForm, QuizForm, QuestionForm, AnswerForm
 from .models import Quiz, Question, Answer, UserQuizResult
+from django.contrib import messages
 
 def login_view(request):
+    # Vérifie si l'utilisateur a été redirigé vers la page de connexion
+    if request.GET.get('next'):
+        messages.info(request, 'Veuillez vous connecter pour accéder à cette page.')
+
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
@@ -13,13 +18,14 @@ def login_view(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('quiz_list')
+                next_url = request.GET.get('next', 'quiz_list')  # Redirige vers 'next' ou 'quiz_list'
+                return redirect(next_url)
     else:
         form = LoginForm()
     return render(request, 'app/login.html', {'form': form})
 
 
-
+@login_required
 def quiz_list(request):
     quizzes = Quiz.objects.all()  # Récupère tous les quiz
     return render(request, 'app/quiz_list.html', {'quizzes': quizzes})
