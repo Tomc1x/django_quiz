@@ -1,0 +1,47 @@
+{% extends 'app/base.html' %}
+
+{% block content %}
+<h1>Administration Personnalisée</h1>
+
+<h2>Ajouter un Quiz</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ quiz_form.as_p }}
+    <button type="submit" name="add_quiz">Ajouter un Quiz</button>
+</form>
+
+<h2>Ajouter une Question</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ question_form.as_p }}
+    <button type="submit" name="add_question">Ajouter une Question</button>
+</form>
+
+<h2>Ajouter une Réponse</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ answer_form.as_p }}
+    <button type="submit" name="add_answer">Ajouter une Réponse</button>
+</form>
+
+<h2>Liste des Quiz</h2>
+<ul>
+    {% for quiz in quizzes %}
+    <li>{{ quiz.title }}</li>
+    {% endfor %}
+</ul>
+
+<h2>Liste des Questions</h2>
+<ul>
+    {% for question in questions %}
+    <li>{{ question.text }} (Quiz: {{ question.quiz.title }})</li>
+    {% endfor %}
+</ul>
+
+<h2>Liste des Réponses</h2>
+<ul>
+    {% for answer in answers %}
+    <li>{{ answer.text }} (Question: {{ answer.question.text }}, Correcte: {{ answer.is_correct }})</li>
+    {% endfor %}
+</ul>
+{% endblock %}

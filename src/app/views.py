@@ -72,3 +72,40 @@ def admin_page(request):
 
     quizzes = Quiz.objects.all()
     return render(request, 'app/admin.html', {'quiz_form': quiz_form, 'quizzes': quizzes})
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)  # Seuls les administrateurs peuvent accéder
+def custom_admin(request):
+    quizzes = Quiz.objects.all()
+    questions = Question.objects.all()
+    answers = Answer.objects.all()
+
+    if request.method == 'POST':
+        if 'add_quiz' in request.POST:
+            quiz_form = QuizForm(request.POST)
+            if quiz_form.is_valid():
+                quiz_form.save()
+                return redirect('custom_admin')
+        elif 'add_question' in request.POST:
+            question_form = QuestionForm(request.POST)
+            if question_form.is_valid():
+                question_form.save()
+                return redirect('custom_admin')
+        elif 'add_answer' in request.POST:
+            answer_form = AnswerForm(request.POST)
+            if answer_form.is_valid():
+                answer_form.save()
+                return redirect('custom_admin')
+    else:
+        quiz_form = QuizForm()
+        question_form = QuestionForm()
+        answer_form = AnswerForm()
+
+    return render(request, 'app/custom_admin.html', {
+        'quizzes': quizzes,
+        'questions': questions,
+        'answers': answers,
+        'quiz_form': quiz_form,
+        'question_form': question_form,
+        'answer_form': answer_form,
+    })
