@@ -6,7 +6,20 @@ document.addEventListener('DOMContentLoaded', function () {
     // Affiche les messages Django au chargement de la page
     toastManager.showDjangoMessages();
 
-    // Exemple d'utilisation manuelle
-    toastManager.toast('success', 'Ceci est un toast de succès !');
-    toastManager.toast('error', 'Ceci est un toast d\'erreur !');
+
+});
+
+
+
+// Loader login
+document.addEventListener('DOMContentLoaded', function () {
+    const loader = document.getElementById('loader');
+    const loginForm = document.getElementById('login-form');
+
+    // Affiche le loader lors de la soumission du formulaire
+    if (loginForm) {
+        loginForm.addEventListener('submit', function () {
+            loader.style.display = 'flex';  // Affiche le loader
+        });
+    }
 });
