@@ -1,1 +1,22 @@
-.venv
+# Fichiers sensibles
+.env
+*.env
+
+# Base de données locale
+*.sqlite3
+
+# Dépendances Python
+venv/
+env/
+
+# Fichiers de cache
+__pycache__/
+*.pyc
+
+# Fichiers de l'IDE
+.idea/
+.vscode/
+
+# Fichiers statiques et médias
+/media/
+/staticfiles/

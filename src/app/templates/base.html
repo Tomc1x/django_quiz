@@ -1,1 +1,30 @@
 <!-- Base (Barre de navigation,Footer, imports, etc ...) -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App</title>
+    <link rel="stylesheet" href="{% static 'app/css/styles.css' %}">
+</head>
+<body>
+    <nav>
+        <div class="navbar">
+            <a href="{% url 'quiz_list' %}">Accueil</a>
+            <div class="user-menu">
+                <span>{{ user.username }}</span>
+                <div class="dropdown">
+                    <a href="{% url 'stats' %}">Statistiques</a>
+                    {% if user.is_staff %}
+                    <a href="{% url 'admin_page' %}">Administration</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
