@@ -3,8 +3,8 @@ from django.contrib.auth.forms import AuthenticationForm
 from .models import Quiz, Question, Answer
 
 class LoginForm(AuthenticationForm):
-    username = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    username = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control form-control-lg','placeholder': 'Entrez votre identifiant',}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control form-control-lg','placeholder': 'Entrez votre mot de passe',}))
 
 class QuizForm(forms.ModelForm):
     class Meta:

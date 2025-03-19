@@ -1,10 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login,logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import LoginForm, QuizForm, QuestionForm, AnswerForm
 from .models import Quiz, Question, Answer, UserQuizResult
+from django.contrib import messages
 
 def login_view(request):
+    if request.GET.get('next'):
+        messages.info(request, 'Veuillez vous connecter pour accéder à cette page.')
+
+
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
@@ -13,13 +18,21 @@ def login_view(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('quiz_list')
+                next_url = request.GET.get('next', 'quiz_list')  # Redirige vers 'next' ou 'quiz_list'
+                return redirect(next_url)
+            else:
+                # Ajoute un message d'erreur si l'authentification échoue
+                messages.error(request, 'Identifiant ou mot de passe incorrect.')
+        else:
+            # Ajoute un message d'erreur si le formulaire est invalide
+            messages.error(request, 'Veuillez corriger les erreurs ci-dessous.')
     else:
         form = LoginForm()
     return render(request, 'app/login.html', {'form': form})
 
 
 
+@login_required
 def quiz_list(request):
     quizzes = Quiz.objects.all()  # Récupère tous les quiz
     return render(request, 'app/quiz_list.html', {'quizzes': quizzes})
@@ -109,3 +122,9 @@ def custom_admin(request):
         'question_form': question_form,
         'answer_form': answer_form,
     })
+
+
+def custom_logout(request):
+    logout(request)  # Déconnecte l'utilisateur
+    messages.success(request, 'Vous avez été déconnecté avec succès.')  # Ajoute un message de succès
+    return redirect('login')  # Redirige vers la page de connexion

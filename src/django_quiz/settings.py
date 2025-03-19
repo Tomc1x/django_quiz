@@ -26,6 +26,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'sioorigin.alwaysdata.net']
 
+LOGIN_URL = 'login'
+LOGOUT_REDIRECT_URL = 'login'  # Redirige vers la page de connexion après déconnexion
+
+
 # Application definition
 
 INSTALLED_APPS = [
