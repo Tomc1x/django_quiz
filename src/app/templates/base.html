@@ -17,7 +17,7 @@
                 <div class="dropdown">
                     <a href="{% url 'stats' %}">Statistiques</a>
                     {% if user.is_staff %}
-                    <a href="{% url 'admin_page' %}">Administration</a>
+                    <a href="{% url 'custom_admin' %}">Administration</a>
                     {% endif %}
                 </div>
             </div>

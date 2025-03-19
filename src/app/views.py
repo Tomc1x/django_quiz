@@ -61,12 +61,12 @@ def stats(request):
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)  # Seuls les administrateurs peuvent accéder
-def admin_page(request):
+def custom_admin(request):
     if request.method == 'POST':
         quiz_form = QuizForm(request.POST)
         if quiz_form.is_valid():
             quiz_form.save()
-            return redirect('admin_page')
+            return redirect('custom_admin')
     else:
         quiz_form = QuizForm()
 
