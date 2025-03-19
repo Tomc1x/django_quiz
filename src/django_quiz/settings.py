@@ -24,7 +24,7 @@ SECRET_KEY = 'django-insecure-2zqudf87sqb&!667#+4ow!d=11e!o__h5(%$1sp(^m4^f)!q+w
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'sioorigin.alwaysdata.net']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'sio-origin.alwaysdata.net']
 
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'login'  # Redirige vers la page de connexion après déconnexion
