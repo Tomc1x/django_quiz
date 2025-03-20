@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Ajouter une Question</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ question_form.as_p }}
+        </div>
+        <h3>Réponses</h3>
+        {{ answer_formset.management_form }}
+        {% for form in answer_formset %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">{{ form.text.label }}</label>
+                    {{ form.text }}
+                </div>
+                <div class="form-check">
+                    {{ form.is_correct }}
+                    <label class="form-check-label">{{ form.is_correct.label }}</label>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">
+        <a class="returnButton " href="javascript:history.back()"></a>
+        {{ quiz.title }}
+    </h1>
+    <p>{{ quiz.description }}</p>
+
+    <div class="mb-4">
+        <h2>Questions</h2>
+        {% for question in questions %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ question.text }}</h5>
+                <ul class="list-group list-group-flush">
+                    {% for answer in question.answers.all %}
+                    <li class="list-group-item">
+                        {{ answer.text }}
+                        {% if answer.is_correct %}
+                        <span class="badge bg-success">Correct</span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                <a href="{% url 'edit_question' question.id %}" class="btn btn-sm btn-warning mt-2">Modifier</a>
+            </div>
+        </div>
+        {% endfor %}
+        <div class="text-center">
+            <a href="{% url 'add_question' quiz.id %}" class="btn btn-success">Ajouter une Question</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

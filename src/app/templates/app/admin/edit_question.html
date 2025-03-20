@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">
+        <a class="returnButton " href="javascript:history.back()"></a>
+
+        Modifier la Question
+    </h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ question_form.as_p }}
+        </div>
+        <h3>Réponses</h3>
+        {{ answer_formset.management_form }}
+        {% for form in answer_formset %}
+        {% if form.text.value %} <!-- Afficher uniquement les réponses non vides -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">{{ form.text.label }}</label>
+                    {{ form.text }}
+                </div>
+                <div class="form-check">
+                    {{ form.is_correct }}
+                    <label class="form-check-label">{{ form.is_correct.label }}</label>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+        <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+            <a href="javascript:history.back()" class="btn btn-secondary">Retour</a>
+            <button type="submit" name="delete_question" class="btn btn-danger">Supprimer la Question</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

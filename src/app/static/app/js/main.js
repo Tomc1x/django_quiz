@@ -23,3 +23,15 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+//Listener to backbutton 
+document.addEventListener('DOMContentLoaded', function () {
+    const backButtons = document.getElementsByClassName('returnButton');
+    for (let i = 0; i < backButtons.length; i++) {
+        backButtons[i].innerHTML = '<i class="bi bi-arrow-left-circle"></i>';
+        backButtons[i].addEventListener('click', function () {
+            backButtons[i].innerHTML = '<i class="bi bi-arrow-left-circle-fill"></i>';
+        });
+
+    }
+})
