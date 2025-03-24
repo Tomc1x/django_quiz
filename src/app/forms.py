@@ -42,3 +42,4 @@ AnswerFormSet = inlineformset_factory(
     extra=3,  # Nombre de réponses vides à afficher
     can_delete=False,  # Désactiver la suppression des réponses
 )
+

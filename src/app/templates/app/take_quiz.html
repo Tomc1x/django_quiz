@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">{{ quiz.title }}</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        {% for question in quiz.questions.all %}
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Question {{ forloop.counter }}</h5>
+                <p>{{ question.text }}</p>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="question_{{ question.id }}"
+                        id="q{{ question.id }}_1" value="reponse1">
+                    <label class="form-check-label" for="q{{ question.id }}_1">
+                        {{ question.reponse1 }}
+                    </label>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="question_{{ question.id }}"
+                        id="q{{ question.id }}_2" value="reponse2">
+                    <label class="form-check-label" for="q{{ question.id }}_2">
+                        {{ question.reponse2 }}
+                    </label>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="question_{{ question.id }}"
+                        id="q{{ question.id }}_3" value="reponse3">
+                    <label class="form-check-label" for="q{{ question.id }}_3">
+                        {{ question.reponse3 }}
+                    </label>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary btn-lg">Soumettre le quiz</button>
+    </form>
+</div>
+{% endblock %}

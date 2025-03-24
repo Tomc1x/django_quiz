@@ -1,15 +1,16 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block content %}
 <div class="container mt-5">
-    <h1 class="mb-4">Quiz Disponibles</h1>
+    <h1 class="mb-4">Liste des Quiz</h1>
     <div class="list-group">
         {% for quiz in quizzes %}
-        <a href="{% url 'take_quiz' quiz.id %}" class="list-group-item list-group-item-action">
+        <a href="{% url 'admin_quiz_detail' quiz.id %}" class="list-group-item list-group-item-action">
             {{ quiz.title }}
-            <span class="badge bg-primary float-end">{{ quiz.questions.count }} questions</span>
         </a>
         {% endfor %}
     </div>
+    <a href="{% url 'add_quiz' %}" class="btn btn-primary mt-3">Ajouter un Quiz</a>
 </div>
 {% endblock %}
