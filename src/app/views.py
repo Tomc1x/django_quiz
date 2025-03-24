@@ -1,9 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .forms import LoginForm, QuizForm, QuestionForm, AnswerForm
-from .models import Quiz, Question, Answer, UserQuizResult
 from django.contrib import messages
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+
+from .forms import LoginForm, QuizForm, QuestionForm
+from .models import Quiz, Question, UserQuizResult
 
 
 def login_view(request):
@@ -57,15 +60,6 @@ def custom_logout(request):
     return redirect('login')  # Redirige vers la page de connexion
 
 
-from django.shortcuts import render, redirect
-from .forms import QuestionForm, AnswerForm, AnswerFormSet
-from .models import Quiz
-from django.template.loader import render_to_string
-
-from django.http import JsonResponse
-from django.template.loader import render_to_string
-
-
 # Administration
 @login_required
 @user_passes_test(
@@ -73,6 +67,16 @@ from django.template.loader import render_to_string
 def admin_quiz_detail(request, quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
     questions = quiz.questions.all()  # Récupère toutes les questions du quiz
+    if request.method == 'POST':
+        if 'delete_quiz' in request.POST:
+            print('delete_quiz')
+            quiz.delete()
+            messages.success(request, 'Le quiz a été supprimé avec succès.')
+            return redirect('custom_admin')
+        elif 'go_back' in request.POST:
+            print('go back')
+            return redirect('custom_admin')
+
     return render(request, 'app/admin/quiz_detail.html', {
         'quiz': quiz,
         'questions': questions
@@ -85,7 +89,6 @@ def admin_quiz_detail(request, quiz_id):
 def custom_admin(request):
     quizzes = Quiz.objects.all()
     questions = Question.objects.all()
-    answers = Answer.objects.all()
 
     if request.method == 'POST':
         if 'add_quiz' in request.POST:
@@ -98,24 +101,16 @@ def custom_admin(request):
             if question_form.is_valid():
                 question_form.save()
                 return redirect('custom_admin')
-        elif 'add_answer' in request.POST:
-            answer_form = AnswerForm(request.POST)
-            if answer_form.is_valid():
-                answer_form.save()
-                return redirect('custom_admin')
     else:
         quiz_form = QuizForm()
         question_form = QuestionForm()
-        answer_form = AnswerForm()
 
     return render(
         request, 'app/admin/custom_admin.html', {
             'quizzes': quizzes,
             'questions': questions,
-            'answers': answers,
             'quiz_form': quiz_form,
             'question_form': question_form,
-            'answer_form': answer_form,
         })
 
 
@@ -125,30 +120,18 @@ def custom_admin(request):
 def add_question(request, quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
     if request.method == 'POST':
-        question_form = QuestionForm(request.POST)
-        answer_formset = AnswerFormSet(request.POST)
-        if question_form.is_valid() and answer_formset.is_valid():
-            # Sauvegarder la question
-            question = question_form.save(commit=False)
+        form = QuestionForm(request.POST)
+        if form.is_valid():
+            question = form.save(commit=False)
             question.quiz = quiz
             question.save()
-            messages.success(request, 'La question a été ajoutée avec succès.')
-            # Sauvegarder les réponses
-            answers = answer_formset.save(commit=False)
-            for answer in answers:
-                answer.question = question
-                answer.save()
             return redirect('admin_quiz_detail', quiz_id=quiz.id)
     else:
-        messages.info(request, 'Veuillez remplir le formulaire ci-dessous.')
-        question_form = QuestionForm()
-        answer_formset = AnswerFormSet()
-    return render(
-        request, 'app/admin/add_question.html', {
-            'quiz': quiz,
-            'question_form': question_form,
-            'answer_formset': answer_formset,
-        })
+        form = QuestionForm()
+    return render(request, 'app/admin/add_question.html', {
+        'form': form,
+        'quiz': quiz
+    })
 
 
 @login_required
@@ -161,39 +144,27 @@ def edit_question(request, question_id):
     if request.method == 'POST':
         if 'delete_question' in request.POST:  # Si le bouton "Supprimer" est cliqué
             question.delete()
+            messages.success(request,
+                             'La question a été supprimée avec succès.')
+            return redirect('admin_quiz_detail', quiz_id=quiz_id)
+        elif 'go_back' in request.POST:  # Si le bouton "Retour" est cliqué
+            print('go back')
             return redirect('admin_quiz_detail', quiz_id=quiz_id)
         else:
-
-            question_form = QuestionForm(request.POST, instance=question)
-            answer_formset = AnswerFormSet(request.POST, instance=question)
-            if question_form.is_valid() and answer_formset.is_valid():
-                print('test')
-                # Sauvegarder la
-                # question
-                question_form.save()
-                # Sauvegarder les réponses
-                answers = answer_formset.save(commit=False)
-                for answer in answers:
-                    # Ne pas enregistrer les réponses vides
-                    if answer.text.strip(
-                    ):  # Vérifie si le champ n'est pas vide
-                        answer.question = question
-                        answer.save()
-                # Rediriger vers la page de détail du quiz
+            messages.success(request,
+                             'La question a été modifiée avec succès.')
+            form = QuestionForm(request.POST, instance=question)
+            if form.is_valid():
+                form.save()
                 return redirect('admin_quiz_detail', quiz_id=quiz_id)
     else:
-        question_form = QuestionForm(instance=question)
-        # Limiter le nombre de réponses à 3
-        answer_formset = AnswerFormSet(instance=question)
-        if question.answers.count() >= 3:
-            answer_formset.extra = 0  # Ne pas afficher de champs supplémentaires
+        form = QuestionForm(instance=question)
 
-    return render(
-        request, 'app/admin/edit_question.html', {
-            'question_form': question_form,
-            'answer_formset': answer_formset,
-            'question': question,
-        })
+    return render(request, 'app/admin/edit_question.html', {
+        'form': form,
+        'question': question,
+        'quiz_id': quiz_id,
+    })
 
 
 @login_required

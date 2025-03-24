@@ -11,14 +11,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-// Loader login
+// Loader for all forms
 document.addEventListener('DOMContentLoaded', function () {
     const loader = document.getElementById('loader');
-    const loginForm = document.getElementById('login-form');
+    const forms = document.getElementsByTagName('form');
 
-    // Affiche le loader lors de la soumission du formulaire
-    if (loginForm) {
-        loginForm.addEventListener('submit', function () {
+    // Affiche le loader lors de la soumission de chaque formulaire
+    for (let i = 0; i < forms.length; i++) {
+        forms[i].addEventListener('submit', function () {
             loader.style.display = 'flex';  // Affiche le loader
         });
     }

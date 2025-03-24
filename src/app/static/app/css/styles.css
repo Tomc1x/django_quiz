@@ -99,18 +99,6 @@ body {
     }
 }
 
-/* Couleurs pour les réponses */
-.bg-success.bg-opacity-10 {
-    border-left: 4px solid #28a745;
-    padding-left: 10px;
-}
-
-.bg-danger.bg-opacity-10 {
-    border-left: 4px solid #dc3545;
-    padding-left: 10px;
-}
-
-/* Style des boutons radio désactivés */
-.form-check-input:disabled {
-    opacity: 1;
+.returnButton {
+    border: none;
 }

@@ -2,29 +2,18 @@
 {% load static %}
 {% block content %}
 <div class="container mt-5">
-    <h1 class="mb-4">Ajouter une Question</h1>
+    <h1 class="mb-4">
+    <a class="returnButton " href="javascript:history.back()"></a>
+    Ajouter une Question</h1>
     <form method="post">
         {% csrf_token %}
         <div class="mb-3">
-            {{ question_form.as_p }}
+            {{ form.as_p }}
         </div>
-        <h3>Réponses</h3>
-        {{ answer_formset.management_form }}
-        {% for form in answer_formset %}
-        <div class="card mb-3">
-            <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label">{{ form.text.label }}</label>
-                    {{ form.text }}
-                </div>
-                <div class="form-check">
-                    {{ form.is_correct }}
-                    <label class="form-check-label">{{ form.is_correct.label }}</label>
-                </div>
-            </div>
+        <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
         </div>
-        {% endfor %}
-        <button type="submit" class="btn btn-primary">Ajouter</button>
     </form>
 </div>
 {% endblock %}
+
