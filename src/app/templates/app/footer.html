@@ -1,0 +1,38 @@
+<footer class="bg-dark text-white pt-5 pb-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <h5 class="text-uppercase mb-4">À propos</h5>
+                <p>Plateforme éducative offrant des quiz interactifs pour améliorer vos connaissances.</p>
+                <div class="mt-4">
+                    <a href="#" class="text-white me-3"><i class="bi bi-facebook fs-4"></i></a>
+                    <a href="#" class="text-white me-3"><i class="bi bi-twitter fs-4"></i></a>
+                    <a href="#" class="text-white me-3"><i class="bi bi-instagram fs-4"></i></a>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <h5 class="text-uppercase mb-4">Liens utiles</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="{% url 'terms' %}" class="text-white">Conditions d'utilisation</a></li>
+                    <li class="mb-2"><a href="{% url 'privacy' %}" class="text-white">Politique de confidentialité</a>
+                    </li>
+                    <li class="mb-2"><a href="{% url 'contact' %}" class="text-white">Contactez-nous</a></li>
+                    <li><a href="{% url 'quiz_list' %}" class="text-white">Liste des quiz</a></li>
+                </ul>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <h5 class="text-uppercase mb-4">Partenaires</h5>
+                <div class="d-flex flex-wrap align-items-center">
+
+                </div>
+                <p class="small mt-3">Remerciements à nos partenaires pour leurs services d'hébergement d'images.</p>
+            </div>
+        </div>
+
+        <div class="border-top pt-4 mt-4 text-center">
+            <p class="mb-0">&copy; 2025 Django_quiz. Tous droits réservés.</p>
+        </div>
+    </div>
+</footer>

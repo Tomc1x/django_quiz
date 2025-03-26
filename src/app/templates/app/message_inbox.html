@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3><i class="bi bi-inbox"></i> Boîte de réception</h3>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for message in messages %}
+                        <a href="{% url 'message_detail' message.id %}"
+                            class="list-group-item list-group-item-action {% if not message.user_has_read %}list-group-item-info{% endif %}">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ message.title }}</h5>
+                                <small>{{ message.created_at|date:"d/m/Y H:i" }}</small>
+                            </div>
+                            <p class="mb-1">{{ message.content|truncatechars:100 }}</p>
+                            <small>De : {{ message.author.username }}</small>
+                            <span class="badge bg-{{ message.get_type_class }} float-end">
+                                {{ message.get_message_type_display }}
+                            </span>
+                        </a>
+                        {% empty %}
+                        <div class="alert alert-info">Aucun message à afficher</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

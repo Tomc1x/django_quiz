@@ -1,0 +1,60 @@
+{% load quiz_extras %} {# Chargement en haut du template #}
+
+<div class="card shadow mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 fw-bold text-primary">
+            <i class="bi bi-journal-bookmark me-2"></i>Détail par Quiz
+        </h6>
+        <input type="text" class="form-control w-25" id="quizSearch" placeholder="Rechercher...">
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="quizTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Quiz</th>
+                        <th class="text-center">Tentatives</th>
+                        <th class="text-center">Meilleur Score</th>
+                        <th class="text-center">Dernier Score</th>
+                        <th class="text-center">Progression</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in quiz_stats %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="bi bi-journal-text fs-4 text-primary"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ stat.quiz.title }}</div>
+                                    <div class="text-muted small">{{ stat.quiz.description|truncatechars:40 }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center align-middle">{{ stat.attempts }}</td>
+                        <td class="text-center align-middle">
+                            <span class="badge bg-success rounded-pill">{{ stat.best_score }}%</span>
+                        </td>
+                        <td class="text-center align-middle">
+                            <span class="badge bg-{{ stat.last_score|score_color }} rounded-pill">{{ stat.last_score }}%</span>
+                        </td>
+                        <td class="text-center align-middle">
+                            {% if stat.progress > 0 %}
+                            <i class="bi bi-arrow-up-circle-fill text-success me-1"></i>
+                            <span class="text-success">{{ stat.progress }}%</span>
+                            {% elif stat.progress < 0 %} <i class="bi bi-arrow-down-circle-fill text-danger me-1"></i>
+                                <span class="text-danger">{{ stat.progress }}%</span>
+                                {% else %}
+                                <span class="text-muted">Stable</span>
+                                {% endif %}
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

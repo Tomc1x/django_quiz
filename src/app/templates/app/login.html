@@ -4,78 +4,80 @@
 
 {% block content %}
 
-<section class="vh-100" >
-    <div class="container py-5 h-100">
-      <div class="row d-flex justify-content-center align-items-center h-100">
-        <div class="col col-xl-10">
-          <div class="card login-card" style="border-radius: 0.5rem;">
-            <div class="row g-0">
-              <div class="col-md-6 col-lg-5 d-none d-md-block">
-                <img src="{% static 'app/images/crab_login_image.png' %}"
-                  alt="login form" class="img-fluid" style="height:100%;border-radius: 1rem 0 0 1rem;" />
-              </div>
-              <div class="logs-col col-md-6 col-lg-7 d-flex align-items-center">
-                <div class="card-body p-4 p-lg-5 text-black">
-  
-                  <form method="post" id="login-form">
-                    {% csrf_token %}
-  
-                    <div class="d-flex align-items-center mb-3 pb-1">
-                      <i class="bi bi-door-open-fill me-3 fs-2" style="color: #ff6219;"></i>
-                      <span class="h1 fw-bold mb-0 text-white">CONNEXION</span>
+<section class="vh-100">
+  <div class="container py-5 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+      <div class="col col-xl-10">
+        <div class="card login-card" style="border-radius: 0.5rem;">
+          <div class="row g-0">
+            <div class="col-md-6 col-lg-5 d-none d-md-block">
+              <img src="{% static 'app/images/crab_login_image.png' %}" alt="login form" class="img-fluid"
+                style="height:100%;border-radius: 1rem 0 0 1rem;" />
+            </div>
+            <div class="logs-col col-md-6 col-lg-7 d-flex align-items-center">
+              <div class="card-body p-4 p-lg-5 text-black">
 
-                    </div>
-  
-                    <h5 class="fw-normal mb-3 pb-3 text-white" style="letter-spacing: 1px;">Connectez-vous a votre compte</h5>
-                    <!-- Affiche les erreurs non liées à un champ spécifique -->
-                    {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
-                        {% for error in form.non_field_errors %}
-                            <small>{{ error }}</small><br>
-                        {% endfor %}
+                <form autocomplete="off" method="post" id="login-form">
+                  {% csrf_token %}
+
+                  <div class="d-flex align-items-center mb-3 pb-1">
+                    <i class="bi bi-door-open-fill me-3 fs-2" style="color: #ff6219;"></i>
+                    <span class="h1 fw-bold mb-0 text-white">CONNEXION</span>
+
+                  </div>
+
+                  <h5 class="fw-normal mb-3 pb-3 text-white" style="letter-spacing: 1px;">Connectez-vous a votre compte
+                  </h5>
+                  <!-- Affiche les erreurs non liées à un champ spécifique -->
+                  {% if form.non_field_errors %}
+                  <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                    <small>{{ error }}</small><br>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+                  <div class="form-outline mb-4 text-white">
+                    <label class="form-label">Identifiant</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                    <div class="text-danger">
+                      {% for error in form.username.errors %}
+                      <small>{{ error }}</small><br>
+                      {% endfor %}
                     </div>
                     {% endif %}
-                    <div class="form-outline mb-4 text-white">
-                        <label class="form-label">Identifiant</label>
-                      {{ form.username }}
-                      {% if form.username.errors %}
-                            <div class="text-danger">
-                                {% for error in form.username.errors %}
-                                    <small>{{ error }}</small><br>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
+                  </div>
+
+                  <div class="form-outline mb-4 text-white">
+                    <label class="form-label">Mot de passe</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                    <div class="text-danger">
+                      {% for error in form.password.errors %}
+                      <small>{{ error }}</small><br>
+                      {% endfor %}
                     </div>
-  
-                    <div class="form-outline mb-4 text-white">
-                        <label class="form-label">Mot de passe</label>
-                        {{ form.password }}
-                        {% if form.password.errors %}
-                            <div class="text-danger">
-                                {% for error in form.password.errors %}
-                                    <small>{{ error }}</small><br>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-  
-                    <div class="pt-1 mb-4">
-                      <button  class="btn btn-dark btn-lg btn-block fw-bold border-0 px-5" style="background: #E95538;" type="submit">Connexion</button>
-                    </div>
-  
-                    <a class="small  text-white" href="#!">Mot de passe oublié ?</a>
-                    <p class="mb-5 pb-lg-2 text-white" style="color: #393f81;">Pas encore de compte ? <a href="#!"
-                        style="color: #8d93d3;">S'inscrire ici</a></p>
-                    <a href="#!" class="small  text-white">Conditions d'utilisations.</a>
-                    <a href="#!" class="small  text-white">Politiques de confidentialité.</a>
-                  </form>
-  
-                </div>
+                    {% endif %}
+                  </div>
+
+                  <div class="pt-1 mb-4">
+                    <button class="btn btn-dark btn-lg btn-block fw-bold border-0 px-5" style="background: #E95538;"
+                      type="submit">Connexion</button>
+                  </div>
+
+                  <a class="small  text-white" href="#!">Mot de passe oublié ?</a>
+                  <p class="mb-5 pb-lg-2 text-white" style="color: #393f81;">Pas encore de compte ? <a
+                      href="{% url 'register' %}" style="color: #8d93d3;">S'inscrire ici</a></p>
+                  <a href="#!" class="small  text-white">Conditions d'utilisations.</a>
+                  <a href="#!" class="small  text-white">Politiques de confidentialité.</a>
+                </form>
+
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 {% endblock %}

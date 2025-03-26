@@ -1,0 +1,183 @@
+<div class="container-fluid">
+    <div class="row">
+        <!-- Graphique des résultats -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Historique des scores pour: {{ quiz.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="quizHistoryChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiques résumées -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Statistiques</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <div class="card bg-success text-white text-center">
+                                <div class="card-body">
+                                    <h4 class="mb-0">{{ stats.avg_score|floatformat:1 }}</h4>
+                                    <small>Moyenne</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="card bg-info text-white text-center">
+                                <div class="card-body">
+                                    <h4 class="mb-0">{{ stats.attempts }}</h4>
+                                    <small>Tentatives</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="card bg-warning text-dark text-center">
+                                <div class="card-body">
+                                    <h4 class="mb-0">{{ stats.max_score }}</h4>
+                                    <small>Meilleur score</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="card bg-danger text-white text-center">
+                                <div class="card-body">
+                                    <h4 class="mb-0">{{ stats.min_score }}</h4>
+                                    <small>Pire score</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau des résultats détaillés -->
+    <div class="card">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Détails des tentatives</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th class="text-center">Score</th>
+                            <th class="text-center">Temps</th>
+                            <th class="text-center">Progression</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for result in stats.results %}
+                        <tr>
+                            <td>{{ result.completed_at|date:"d/m/Y H:i" }}</td>
+                            <td class="text-center">{{ result.score }} / {{ quiz.questions.count }}</td>
+                            <td class="text-center">{{ result.completion_time }}s</td>
+                            <td class="text-center">
+                                {% if forloop.first %}
+                                <span class="text-muted">-</span>
+                                {% else %}
+                                {% with prev_score=stats.results|slice:forloop.counter0|last %}
+                                {% with diff=result.score|sub:prev_score.score %}
+                                {% if diff > 0 %}
+                                <span class="text-success">+{{ diff }}</span>
+                                {% elif diff < 0 %} <span class="text-danger">{{ diff }}</span>
+                                    {% else %}
+                                    <span class="text-muted">±0</span>
+                                    {% endif %}
+                                    {% endwith %}
+                                    {% endwith %}
+                                    {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('quizHistoryChart').getContext('2d');
+        const labels = [
+            {% for result in stats.results %}
+            "{{ result.completed_at|date:'d/m/Y' }}"{% if not forloop.last %}, {% endif %}
+    {% endfor %}
+    ];
+    const data = {
+        labels: labels,
+        datasets: [{
+            label: 'Score',
+            data: [
+                {% for result in stats.results %}
+                    {{ result.score }}{% if not forloop.last %}, {% endif %}
+    {% endfor %}
+            ],
+    borderColor: '#4e73df',
+        backgroundColor: 'rgba(78, 115, 223, 0.05)',
+            fill: true,
+                tension: 0.1,
+                    yAxisID: 'y'
+        }, {
+        label: 'Temps (s)',
+            data: [
+                {% for result in stats.results %}
+    { { result.completion_time } } {% if not forloop.last %}, {% endif %}
+    {% endfor %}
+            ],
+    borderColor: '#1cc88a',
+        backgroundColor: 'rgba(28, 200, 138, 0.05)',
+            fill: true,
+                tension: 0.1,
+                    yAxisID: 'y1'
+        }]
+    };
+
+    new Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: true,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Score'
+                    },
+                    min: 0,
+                    max: {{ quiz.questions.count }}
+                },
+        y1: {
+        type: 'linear',
+        display: true,
+        position: 'right',
+        title: {
+            display: true,
+            text: 'Temps (s)'
+        },
+        min: 0,
+        grid: {
+            drawOnChartArea: false,
+        }
+    }
+            }
+        }
+    });
+});
+</script>

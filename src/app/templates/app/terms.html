@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0"><i class="bi bi-file-text me-2"></i>Conditions Générales d'Utilisation</h2>
+                </div>
+                <div class="card-body">
+                    <h4 class="mb-3">1. Préambule</h4>
+                    <p>Les présentes conditions générales d'utilisation (CGU) régissent l'utilisation du site.</p>
+
+                    <h4 class="mb-3 mt-4">2. Accès au site</h4>
+                    <p>L'accès au site est gratuit et ouvert à tout utilisateur disposant d'une connexion internet.</p>
+
+                    <h4 class="mb-3 mt-4">3. Propriété intellectuelle</h4>
+                    <p>Tous les éléments du site (textes, images, logos) sont protégés par le droit d'auteur.</p>
+
+                    <h4 class="mb-3 mt-4">4. Responsabilité</h4>
+                    <p>L'éditeur du site ne peut être tenu responsable des dommages directs ou indirects résultant de
+                        l'utilisation du site.</p>
+
+                    <h4 class="mb-3 mt-4">5. Cookies</h4>
+                    <p>Le site utilise des cookies pour améliorer l'expérience utilisateur. Vous pouvez gérer vos
+                        préférences via notre pop-up de consentement.</p>
+
+                    <h4 class="mb-3 mt-4">6. Modification des CGU</h4>
+                    <p>Nous nous réservons le droit de modifier ces conditions à tout moment.</p>
+
+                    <div class="mt-5">
+                        <a href="{% url 'quiz_list' %}" class="btn btn-primary">
+                            <i class="bi bi-arrow-left me-2"></i> Retour à l'accueil
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

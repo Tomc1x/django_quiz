@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h2>Résultats du Quiz</h2>
+        </div>
+        <div class="card-body">
+            <h3 class="text-center mb-4">Votre score : <strong>{{ score }}/{{ total }}</strong></h3>
+            
+            {% for correction in corrections %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Question {{ forloop.counter }}</h5>
+                    <p class="mb-3">{{ correction.question.text }}</p>
+                    
+                    <!-- Réponse 1 -->
+                    <div class="form-check mb-2 {% if correction.question.reponse1_is_correct %}bg-success bg-opacity-10{% elif correction.user_answer == 'reponse1' and not correction.is_correct %}bg-danger bg-opacity-10{% endif %}">
+                        <input class="form-check-input" type="radio" disabled {% if correction.user_answer == 'reponse1' %}checked{% endif %}>
+                        <label class="form-check-label">
+                            {{ correction.question.reponse1 }}
+                            {% if correction.question.reponse1_is_correct %}
+                            <span class="badge bg-success ms-2">Correcte</span>
+                            {% endif %}
+                        </label>
+                    </div>
+                    
+                    <!-- Réponse 2 -->
+                    <div class="form-check mb-2 {% if correction.question.reponse2_is_correct %}bg-success bg-opacity-10{% elif correction.user_answer == 'reponse2' and not correction.is_correct %}bg-danger bg-opacity-10{% endif %}">
+                        <input class="form-check-input" type="radio" disabled {% if correction.user_answer == 'reponse2' %}checked{% endif %}>
+                        <label class="form-check-label">
+                            {{ correction.question.reponse2 }}
+                            {% if correction.question.reponse2_is_correct %}
+                            <span class="badge bg-success ms-2">Correcte</span>
+                            {% endif %}
+                        </label>
+                    </div>
+                    
+                    <!-- Réponse 3 -->
+                    <div class="form-check mb-2 {% if correction.question.reponse3_is_correct %}bg-success bg-opacity-10{% elif correction.user_answer == 'reponse3' and not correction.is_correct %}bg-danger bg-opacity-10{% endif %}">
+                        <input class="form-check-input" type="radio" disabled {% if correction.user_answer == 'reponse3' %}checked{% endif %}>
+                        <label class="form-check-label">
+                            {{ correction.question.reponse3 }}
+                            {% if correction.question.reponse3_is_correct %}
+                            <span class="badge bg-success ms-2">Correcte</span>
+                            {% endif %}
+                        </label>
+                    </div>
+                    
+                    {% if not correction.is_correct %}
+                    <div class="alert alert-warning mt-2">
+                        Votre réponse était incorrecte. La bonne réponse est mise en évidence.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            
+            <div class="text-center mt-4">
+                <a href="{% url 'quiz_list' %}" class="btn btn-primary">Retour à la liste des quiz</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

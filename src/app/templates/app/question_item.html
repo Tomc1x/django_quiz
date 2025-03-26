@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">{{ question.text }}</h5>
+        <ul class="list-group list-group-flush">
+            {% for answer in question.answers.all %}
+            <li class="list-group-item">
+                {{ answer.text }}
+                {% if answer.is_correct %}
+                <span class="badge bg-success">Correct</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        <a href="{% url 'edit_question' question.id %}" class="btn btn-sm btn-warning mt-2">Modifier</a>
+    </div>
+</div>
+{% endblock %}

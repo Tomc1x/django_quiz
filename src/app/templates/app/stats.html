@@ -1,24 +1,74 @@
-<!-- Statistiques des joueurs -->
 {% extends 'base.html' %}
+{% load quiz_extras %} {# Chargement en haut du template #}
+
 {% load static %}
+
 {% block content %}
-<h1>Statistiques</h1>
-<table>
-    <thead>
-        <tr>
-            <th>Quiz</th>
-            <th>Score</th>
-            <th>Date</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for result in results %}
-        <tr>
-            <td>{{ result.quiz.title }}</td>
-            <td>{{ result.score }}</td>
-            <td>{{ result.completed_at }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="container-fluid px-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-primary">
+            <i class="bi bi-graph-up me-2"></i>Mes Statistiques
+        </h1>
+    </div>
+
+    <!-- Navigation par Onglets -->
+    <ul class="nav nav-tabs mb-4" id="statsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="quizzes-tab" data-bs-toggle="tab" data-bs-target="#quizzes"
+                type="button">
+                <i class="bi bi-journal-bookmark me-2"></i>Par Quiz
+            </button>
+        </li>
+
+    </ul>
+
+    <!-- Contenu des Onglets -->
+    <div class="tab-content" id="statsTabsContent">
+
+        <!-- Onglet Par Quiz -->
+        <div class="tab-pane fade show active" id="quizzes" role="tabpanel">
+            {% include 'app/stats/quizzes_stats.html' %}
+        </div>
+
+
+        <!-- Onglet Classement -->
+        <div class="tab-pane fade" id="ranking" role="tabpanel">
+            {% include 'app/stats/ranking_stats.html' %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal Période Personnalisée -->
+<div class="modal fade" id="dateRangeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Sélectionnez une période</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Date de début</label>
+                        <input type="date" class="form-control" id="startDate">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Date de fin</label>
+                        <input type="date" class="form-control" id="endDate">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="applyCustomRange">Appliquer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="{% static 'js/stats.js' %}"></script>
 {% endblock %}
