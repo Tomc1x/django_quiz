@@ -1,12 +1,28 @@
-from django.shortcuts import render, redirect, get_object_or_404
+import csv
+import json
+from datetime import datetime, timedelta
+
+import requests
+from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib import messages
-from django.http import JsonResponse
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+from django.core.files.storage import default_storage
+from django.core.mail import send_mail
+from django.db.models import Avg, Count, Max, Min, Q
+from django.db.models.functions import TruncDate
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
+from django.utils import timezone
+from django.views import View
+from django.views.generic import TemplateView
 
-from .forms import LoginForm, QuizForm, QuestionForm
-from .models import Quiz, Question, UserQuizResult
+from .forms import LoginForm, QuestionForm, QuizForm, RegisterForm
+from .imgur_uploader import ImgurUploader
+from .models import Question, Quiz, UserQuizResult
 
 
 def login_view(request):
@@ -44,24 +60,93 @@ def login_view(request):
     return render(request, 'app/login.html', {'form': form})
 
 
-@login_required
-def quiz_list(request):
-    quizzes = Quiz.objects.all()  # Récupère tous les quiz
-    return render(request, 'app/admin/quiz_list.html', {'quizzes': quizzes})
+class CustomUserCreationForm(UserCreationForm):
+
+    class Meta(UserCreationForm.Meta):
+        fields = UserCreationForm.Meta.fields + ('email', )
 
 
-from django.db.models import Avg, Count, Max
-from datetime import datetime, timedelta
+def register_view(request):
+    if request.user.is_authenticated:
+        messages.info(request, 'Vous êtes déjà connecté.')
+        return redirect('quiz_list')
 
-from django.db.models import Avg, Count, Max, Min
-from datetime import datetime, timedelta
-import json
-from django.db.models.functions import TruncDate
-from django.contrib.auth.models import User
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
 
-from django.db.models import Q
-from datetime import datetime, timedelta
-from django.utils import timezone
+        # Vérification reCAPTCHA
+        recaptcha_response = request.POST.get('g-recaptcha-response')
+        data = {
+            'secret': settings.RECAPTCHA_PRIVATE_KEY,
+            'response': recaptcha_response
+        }
+        r = requests.post('https://www.google.com/recaptcha/api/siteverify',
+                          data=data)
+        result = r.json()
+
+        if not result.get('success'):
+            messages.error(request, 'Validation reCAPTCHA requise')
+        elif form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, 'Inscription réussie !')
+            return redirect('quiz_list')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+    else:
+        form = RegisterForm()
+
+    return render(request, 'app/register.html', {
+        'form': form,
+        'RECAPTCHA_PUBLIC_KEY': settings.RECAPTCHA_PUBLIC_KEY
+    })
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def admin_users(request):
+    users = User.objects.all().order_by('-date_joined')
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password1 = request.POST.get('password1')
+        password2 = request.POST.get('password2')
+
+        if password1 != password2:
+            messages.error(request, 'Les mots de passe ne correspondent pas.')
+        elif User.objects.filter(username=username).exists():
+            messages.error(request, 'Ce nom d\'utilisateur est déjà pris.')
+        else:
+            user = User.objects.create_user(username=username,
+                                            password=password1)
+            user.is_staff = True
+            user.save()
+            messages.success(request, 'Administrateur créé avec succès.')
+            return redirect('admin_users')
+
+    return render(request, 'app/admin/admin_users.html', {'users': users})
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def promote_user(request, user_id):
+    user = User.objects.get(id=user_id)
+    user.is_staff = True
+    user.save()
+    messages.success(request, f'{user.username} a été promu administrateur.')
+    return redirect('admin_users')
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def delete_user(request, user_id):
+    user = User.objects.get(id=user_id)
+    if request.user == user:
+        messages.error(request,
+                       'Vous ne pouvez pas supprimer votre propre compte.')
+    else:
+        user.delete()
+        messages.success(request, 'Utilisateur supprimé avec succès.')
+    return redirect('admin_users')
 
 
 @login_required
@@ -212,6 +297,14 @@ def custom_logout(request):
     return redirect('login')  # Redirige vers la page de connexion
 
 
+def terms_view(request):
+    return render(request, 'app/terms.html')
+
+
+def privacy_view(request):
+    return render(request, 'app/privacy.html')
+
+
 # Administration
 @login_required
 @user_passes_test(
@@ -332,10 +425,6 @@ def edit_question(request, question_id):
     })
 
 
-from django.core.files.storage import default_storage
-from .imgur_uploader import ImgurUploader
-
-
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def add_quiz(request):
@@ -364,18 +453,10 @@ def add_quiz(request):
     })
 
 
-from django.shortcuts import render
-from .models import Quiz
-
-
+@login_required
 def quiz_list(request):
     quizzes = Quiz.objects.all()
     return render(request, 'app/quiz_list.html', {'quizzes': quizzes})
-
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
-from .models import Quiz, UserQuizResult
 
 
 @login_required
@@ -442,13 +523,6 @@ def my_results(request):
     return render(request, 'app/my_results.html', {'results': results})
 
 
-import json
-import csv
-from django.http import HttpResponse, JsonResponse
-from django.views import View
-from .models import Quiz, Question
-
-
 class QuizExportView(View):
 
     def get(self, request, quiz_id, format_type):
@@ -507,10 +581,6 @@ class QuizExportView(View):
             ])
 
         return response
-
-
-from django.contrib import messages
-from django.shortcuts import redirect
 
 
 class QuizImportView(View):
@@ -668,3 +738,99 @@ def update_quiz_image(request, quiz_id):
             messages.error(request, "Erreur lors de l'upload de l'image.")
 
     return redirect('admin_quiz_detail', quiz_id=quiz.id)
+
+
+def contact_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        message = request.POST.get('message')
+        captcha_response = request.POST.get('g-recaptcha-response')
+
+        # Vérification du captcha
+        if not captcha_response:
+            messages.error(request, 'Veuillez compléter le captcha.')
+        else:
+            data = {
+                'secret': settings.RECAPTCHA_PRIVATE_KEY,
+                'response': captcha_response
+            }
+            r = requests.post(
+                'https://www.google.com/recaptcha/api/siteverify', data=data)
+            result = r.json()
+
+            if not result['success']:
+                messages.error(request,
+                               'Captcha invalide. Veuillez réessayer.')
+            else:
+                # Envoi de l'email
+                subject = f"Message de contact de {email}"
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [settings.CONTACT_EMAIL],
+                    fail_silently=False,
+                )
+                messages.success(request, 'Votre message a bien été envoyé !')
+                return redirect('contact')
+
+    return render(request, 'app/contact.html',
+                  {'RECAPTCHA_PUBLIC_KEY': settings.RECAPTCHA_PUBLIC_KEY})
+
+
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.shortcuts import render, get_object_or_404
+from .models import Message
+from .forms import MessageForm
+
+from django.db.models import Q
+
+
+@login_required
+def message_inbox(request):
+    messages = Message.objects.filter(
+        Q(recipients=request.user) | Q(is_public=True)).exclude(
+            author=request.user).distinct().order_by('-created_at')
+
+    # Ajoute l'information de lecture à chaque message
+    for message in messages:
+        message.user_has_read = message.read_by.filter(
+            id=request.user.id).exists()
+
+    return render(request, 'app/message_inbox.html', {
+        'messages': messages,
+        'current_user': request.user
+    })
+
+
+@login_required
+def message_detail(request, message_id):
+    message = get_object_or_404(Message, id=message_id)
+
+    if not message.is_public and request.user not in message.recipients.all():
+        return HttpResponseForbidden()
+
+    # Marquer comme lu
+    if not message.read_by.filter(id=request.user.id).exists():
+        message.read_by.add(request.user)
+
+    return render(request, 'app/message_detail.html', {'message': message})
+
+
+@user_passes_test(lambda u: u.is_staff)
+def send_message(request):
+    if request.method == 'POST':
+        form = MessageForm(request.POST)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.author = request.user
+            message.save()
+            form.save_m2m()  # Pour les destinataires
+
+            # Ajouter une notification
+            messages.success(request, "Message envoyé avec succès")
+            return redirect('message_inbox')
+    else:
+        form = MessageForm()
+
+    return render(request, 'app/send_message.html', {'form': form})

@@ -24,59 +24,122 @@
 <body>
 
 
-  <nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <nav class="navbar navbar-expand-lg bg-primary shadow-sm ">
     <div class="container-fluid">
-      <a class="navbar-brand" href="{% url 'quiz_list' %}">Django_Quiz</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <a class="navbar-brand fw-bold" href="{% url 'quiz_list' %}">
+        <i class="bi bi-question-circle me-2"></i>QuizMaster
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+      <div class="collapse navbar-collapse" id="mainNavbar">
+        <ul class="navbar-nav me-auto">
           <li class="nav-item">
-            <a class="nav-link disabled" href="#">A propos</a>
+            <a class="nav-link" href="{% url 'quiz_list' %}">
+              <i class="bi bi-house-door"></i> Accueil
+            </a>
           </li>
-          {% if user.is_authenticated %}
-
-          <li class="nav-item dropdown">
-            <form autocomplete="off" action="{% url 'logout' %}" method="post">
-
-              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Compte
-              </a>
-              <ul class="dropdown-menu">
-                {% if user.is_staff %}
-                <li>
-                  <a class="dropdown-item" href="{% url 'custom_admin' %}">Administration</a>
-                </li>
-                {% endif %}
-                <li><a class="dropdown-item" href="{% url 'stats' %}">Statistiques</a></li>
-                <li>
-                  <hr class="dropdown-divider">
-                </li>
-                <li>
-                  {% csrf_token %} <!-- Token CSRF obligatoire pour les requêtes POST -->
-                  <button type="submit" class="dropdown-item">Déconnexion</button>
-                </li>
-              </ul>
-            </form>
-
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'leaderboard' %}">
+              <i class="bi bi-trophy"></i> Classement
+            </a>
           </li>
-          {% endif %}
-
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'contact' %}">
+              <i class="bi bi-envelope"></i> Contact
+            </a>
+          </li>
         </ul>
 
+        <ul class="navbar-nav ms-auto">
+          {% if user.is_authenticated %}
+          <!-- Notification Messages -->
+          <li class="nav-item dropdown">
+            <a class="nav-link position-relative" href="#" id="messageDropdown" role="button" data-bs-toggle="dropdown">
+              <i class="bi bi-bell"></i>
+              {% if unread_messages_count > 0 %}
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ unread_messages_count }}
+              </span>
+              {% endif %}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="messageDropdown">
+              <li>
+                <h6 class="dropdown-header">Messages récents</h6>
+              </li>
+              {% for message in recent_messages %}
+              <li>
+                <a class="dropdown-item {% if not message.user_has_read %}fw-bold{% endif %}"
+                  href="{% url 'message_detail' message.id %}">
+                  <div class="d-flex w-100 justify-content-between">
+                    <span>{{ message.title|truncatechars:20 }}</span>
+                    <small class="text-muted">{{ message.created_at|timesince }}</small>
+                  </div>
+                  <small class="text-muted">{{ message.get_message_type_display }}</small>
+                </a>
+              </li>
+              {% empty %}
+              <li><span class="dropdown-item text-muted">Aucun nouveau message</span></li>
+              {% endfor %}
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item" href="{% url 'message_inbox' %}">Voir tous les messages</a></li>
+            </ul>
+          </li>
+
+          <!-- User Menu -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+              <i class="bi bi-person-circle"></i> {{ user.username }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="{% url 'stats' %}"><i class="bi bi-graph-up"></i> Statistiques</a></li>
+              {% if user.is_staff %}
+              <li><a class="dropdown-item" href="{% url 'custom_admin' %}"><i class="bi bi-gear"></i> Administration</a>
+              </li>
+              <li><a class="dropdown-item" href="{% url 'send_message' %}"><i class="bi bi-megaphone"></i> Envoyer un
+                  message</a></li>
+              {% endif %}
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li>
+                <form action="{% url 'logout' %}" method="post" class="dropdown-item">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-link p-0 text-start w-100">
+                    <i class="bi bi-box-arrow-right"></i> Déconnexion
+                  </button>
+                </form>
+              </li>
+            </ul>
+          </li>
+          {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'login' %}">
+              <i class="bi bi-box-arrow-in-right"></i> Connexion
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'register' %}">
+              <i class="bi bi-person-plus"></i> Inscription
+            </a>
+          </li>
+          {% endif %}
+        </ul>
       </div>
     </div>
   </nav>
+
 
   <main>
     {% block content %}{% endblock %}
   </main>
   <!-- Conteneur pour les toasts -->
   <div id="toast-container" aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3"
-    style="z-index: 11">
+    style="z-index: 1000">
     <!-- Les toasts seront injectés ici dynamiquement -->
   </div>
   <!-- Loader -->
@@ -84,7 +147,89 @@
     <l-helix size="60" speed="2.5" color="black"></l-helix>
   </div>
 
+  <!-- Cookie Consent Modal -->
+  <div class="modal fade" id="cookieConsentModal" tabindex="-1" aria-labelledby="cookieConsentLabel" aria-hidden="true"
+    data-bs-backdrop="static">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="cookieConsentLabel">
+            <i class="bi bi-cookie me-2"></i>Gestion des cookies
+          </h5>
+        </div>
+        <div class="modal-body">
+          <p>Nous utilisons des cookies essentiels pour le bon fonctionnement du site. En acceptant, vous consentez à
+            l'utilisation de ces cookies.</p>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="analyticsCookies" checked disabled>
+            <label class="form-check-label" for="analyticsCookies">
+              Cookies essentiels (obligatoires)
+            </label>
+          </div>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="marketingCookies">
+            <label class="form-check-label" for="marketingCookies">
+              Cookies analytiques (optionnels)
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" id="rejectCookies">
+            <i class="bi bi-x-circle me-2"></i>Refuser
+          </button>
+          <button type="button" class="btn btn-success" id="acceptCookies">
+            <i class="bi bi-check-circle me-2"></i>Accepter
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Vérifie si le consentement a déjà été donné
+      if (!localStorage.getItem('cookieConsent')) {
+        const cookieModal = new bootstrap.Modal(document.getElementById('cookieConsentModal'));
+        cookieModal.show();
+
+        // Gestion du refus
+        document.getElementById('rejectCookies').addEventListener('click', function () {
+          localStorage.setItem('cookieConsent', 'rejected');
+          cookieModal.hide();
+          // Redirige vers une page d'explication ou ferme le site
+          window.location.href = "{% url 'privacy' %}";
+        });
+
+        // Gestion de l'acceptation
+        document.getElementById('acceptCookies').addEventListener('click', function () {
+          localStorage.setItem('cookieConsent', 'accepted');
+          const analyticsAccepted = document.getElementById('analyticsCookies').checked;
+          const marketingAccepted = document.getElementById('marketingCookies').checked;
+
+          localStorage.setItem('analyticsCookies', analyticsAccepted);
+          localStorage.setItem('marketingCookies', marketingAccepted);
+
+          cookieModal.hide();
+        });
+      }
+
+      // Initialisation des cookies selon les préférences
+      if (localStorage.getItem('cookieConsent') === 'accepted') {
+        if (localStorage.getItem('analyticsCookies') === 'true') {
+          // Initialise Google Analytics par exemple
+          console.log('Analytics cookies enabled');
+        }
+        if (localStorage.getItem('marketingCookies') === 'true') {
+          // Initialise les cookies marketing
+          console.log('Marketing cookies enabled');
+        }
+      }
+    });
+  </script>
+
 </body>
+
+{% include 'app/footer.html' %}
 
 <!-- Importation des scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"

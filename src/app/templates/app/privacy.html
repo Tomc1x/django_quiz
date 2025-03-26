@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0"><i class="bi bi-shield-lock me-2"></i>Politique de Confidentialité</h2>
+                </div>
+                <div class="card-body">
+                    <h4 class="mb-3">1. Données collectées</h4>
+                    <p>Nous collectons :</p>
+                    <ul>
+                        <li>Nom d'utilisateur</li>
+                        <li>Adresse email (facultative)</li>
+                        <li>Données de connexion</li>
+                    </ul>
+
+                    <h4 class="mb-3 mt-4">2. Finalités du traitement</h4>
+                    <p>Vos données sont utilisées pour :</p>
+                    <ul>
+                        <li>Gérer votre compte utilisateur</li>
+                        <li>Améliorer nos services</li>
+                        <li>Envoyer des communications (si consentement)</li>
+                    </ul>
+
+                    <h4 class="mb-3 mt-4">3. Cookies</h4>
+                    <p>Types de cookies utilisés :</p>
+                    <ul>
+                        <li><strong>Cookies essentiels</strong> : nécessaires au fonctionnement</li>
+                        <li><strong>Cookies analytiques</strong> : analyse d'audience (optionnel)</li>
+                    </ul>
+
+                    <h4 class="mb-3 mt-4">4. Durée de conservation</h4>
+                    <p>Vos données sont conservées pendant 3 ans après votre dernière connexion.</p>
+
+                    <h4 class="mb-3 mt-4">5. Vos droits</h4>
+                    <p>Conformément au RGPD, vous pouvez :</p>
+                    <ul>
+                        <li>Accéder à vos données</li>
+                        <li>Demander leur rectification</li>
+                        <li>Demander leur suppression</li>
+                    </ul>
+                    <p>Contact : privacy@votresite.com</p>
+
+                    <div class="mt-5">
+                        <button class="btn btn-primary" onclick="showCookieSettings()">
+                            <i class="bi bi-cookie me-2"></i> Gérer mes cookies
+                        </button>
+                        <a href="{% url 'quiz_list' %}" class="btn btn-outline-primary ms-2">
+                            <i class="bi bi-arrow-left me-2"></i> Retour
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showCookieSettings() {
+        const cookieModal = new bootstrap.Modal(document.getElementById('cookieConsentModal'));
+        cookieModal.show();
+    }
+</script>
+{% endblock %}

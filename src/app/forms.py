@@ -18,6 +18,70 @@ class LoginForm(AuthenticationForm):
 
 
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.conf import settings
+import requests
+
+from django import forms
+from .models import Message
+from django.contrib.auth.models import User
+
+
+class MessageForm(forms.ModelForm):
+    recipients = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Destinataires spécifiques")
+
+    class Meta:
+        model = Message
+        fields = [
+            'title', 'content', 'message_type', 'is_public', 'recipients'
+        ]
+        widgets = {
+            'content': forms.Textarea(attrs={'rows': 5}),
+        }
+
+
+class RegisterForm(UserCreationForm):
+    email = forms.EmailField(required=False,
+                             widget=forms.EmailInput(
+                                 attrs={
+                                     'class': 'form-control form-control-lg',
+                                     'placeholder': 'Email (facultatif)'
+                                 }))
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'password1', 'password2')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Personnalisation des champs existants
+        self.fields['username'].widget.attrs.update({
+            'class':
+            'form-control form-control-lg',
+            'placeholder':
+            'Nom d\'utilisateur'
+        })
+        self.fields['password1'].widget.attrs.update({
+            'class':
+            'form-control form-control-lg',
+            'placeholder':
+            'Mot de passe'
+        })
+        self.fields['password2'].widget.attrs.update({
+            'class':
+            'form-control form-control-lg',
+            'placeholder':
+            'Confirmation du mot de passe'
+        })
+
+
+from django import forms
 from .models import Quiz
 
 

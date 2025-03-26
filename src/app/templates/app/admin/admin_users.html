@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Gestion des utilisateurs</h1>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-people-fill me-2"></i>Liste des utilisateurs
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nom d'utilisateur</th>
+                            <th>Email</th>
+                            <th>Statut</th>
+                            <th>Date d'inscription</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email|default:"-" }}</td>
+                            <td>
+                                {% if user.is_staff %}
+                                <span class="badge bg-success">Administrateur</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Utilisateur</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ user.date_joined|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if not user.is_staff %}
+                                <form method="post" action="{% url 'promote_user' user.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        <i class="bi bi-arrow-up-circle"></i> Promouvoir
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <form method="post" action="{% url 'delete_user' user.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')">
+                                        <i class="bi bi-trash"></i> Supprimer
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-person-plus-fill me-2"></i>Créer un administrateur
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="username" class="form-label">Nom d'utilisateur</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password1" class="form-label">Mot de passe</label>
+                    <input type="password" class="form-control" id="password1" name="password1" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password2" class="form-label">Confirmation</label>
+                    <input type="password" class="form-control" id="password2" name="password2" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-2"></i>Créer l'administrateur
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

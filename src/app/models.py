@@ -4,6 +4,47 @@ from django.db.models import Avg, Count
 from django.utils import timezone
 
 
+class Message(models.Model):
+    TYPE_CHOICES = [
+        ('NEWS', 'Nouveauté'),
+        ('QUIZ', 'Nouveau quiz'),
+        ('UPDATE', 'Mise à jour'),
+        ('STAFF', 'Message interne'),
+    ]
+
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    message_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    author = models.ForeignKey(User,
+                               on_delete=models.CASCADE,
+                               related_name='sent_messages')
+    recipients = models.ManyToManyField(User,
+                                        related_name='received_messages',
+                                        blank=True)
+    is_public = models.BooleanField(default=True)
+    read_by = models.ManyToManyField(User,
+                                     related_name='read_messages',
+                                     blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+    def get_type_class(self):
+        return {
+            'NEWS': 'info',
+            'QUIZ': 'success',
+            'UPDATE': 'warning',
+            'STAFF': 'danger'
+        }.get(self.message_type, 'secondary')
+
+    def is_unread_by_user(self, user):
+        return not self.read_by.filter(id=user.id).exists()
+
+
 class Quiz(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
@@ -47,3 +88,18 @@ class UserQuizResult(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.quiz.title} ({self.score})"
+
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+
+@receiver(post_save, sender=Quiz)
+def notify_new_quiz(sender, instance, created, **kwargs):
+    if created:
+        Message.objects.create(
+            title=f"Nouveau quiz : {instance.title}",
+            content=f"Un nouveau quiz '{instance.title}' est disponible !",
+            message_type="QUIZ",
+            author=instance.author,
+            is_public=True)

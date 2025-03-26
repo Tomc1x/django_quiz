@@ -256,3 +256,75 @@ body {
         font-size: 0.85rem;
     }
 }
+
+/* Cookie Consent Modal */
+#cookieConsentModal .modal-content {
+    border-radius: 10px;
+    border: none;
+}
+
+#cookieConsentModal .modal-header {
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+#cookieConsentModal .form-check-input {
+    width: 1.2em;
+    height: 1.2em;
+    margin-top: 0.2em;
+}
+
+#cookieConsentModal .form-check-label {
+    margin-left: 0.5em;
+    font-size: 0.95rem;
+}
+
+#cookieConsentModal .btn {
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+}
+
+/* Footer */
+footer {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+footer a {
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+footer a:hover {
+    color: #E95538 !important;
+}
+
+footer .list-unstyled li {
+    padding: 0.25rem 0;
+}
+
+/* Page Contact */
+#contact-form .form-control {
+    border-radius: 0.5rem;
+    border: 2px solid #dee2e6;
+    transition: all 0.3s;
+}
+
+#contact-form .form-control:focus {
+    border-color: #E95538;
+    box-shadow: 0 0 0 0.25rem rgba(233, 85, 56, 0.25);
+}
+
+#contact-form textarea {
+    min-height: 200px;
+    resize: vertical;
+}
+
+/* Adaptation mobile */
+@media (max-width: 768px) {
+    footer .col-md-4 {
+        margin-bottom: 2rem;
+    }
+
+    footer .text-center {
+        text-align: center !important;
+    }
+}

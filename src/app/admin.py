@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Quiz, Question, UserQuizResult
+from .models import Quiz, Question, UserQuizResult, Message
 
 
 # Configuration pour les questions (Question)
@@ -32,3 +32,10 @@ class UserQuizResultAdmin(admin.ModelAdmin):
     list_display = ('user', 'quiz', 'score', 'completion_time', 'completed_at')
     list_filter = ('quiz', 'completed_at')
     search_fields = ('user__username', 'quiz__title')
+
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ('title', 'author', 'created_at')
+    list_filter = ('author', 'created_at')
+    search_fields = ('title', 'content')
