@@ -5,7 +5,7 @@
 <h1>Administration</h1>
 
 <h2>Ajouter un Quiz</h2>
-<form method="post">
+<form autocomplete="off" method="post">
     {% csrf_token %}
     {{ quiz_form.as_p }}
     <button type="submit">Ajouter</button>

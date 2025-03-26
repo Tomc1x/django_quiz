@@ -1,0 +1,51 @@
+{% load quiz_extras %} {# Chargement en haut du template #}
+
+<div class="row">
+    <div class="col-lg-12 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 fw-bold text-primary">
+                    <i class="bi bi-activity me-2"></i>Évolution des Scores
+                </h6>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-primary active" data-metric="score">
+                        Scores
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-metric="time">
+                        Temps
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="evolutionChart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-white py-3">
+                <h6 class="m-0 fw-bold text-primary">
+                    <i class="bi bi-speedometer2 me-2"></i>Performance Relative
+                </h6>
+            </div>
+            <div class="card-body">
+                <div id="performanceGauge"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-white py-3">
+                <h6 class="m-0 fw-bold text-primary">
+                    <i class="bi bi-arrow-repeat me-2"></i>Taux de Répétition
+                </h6>
+            </div>
+            <div class="card-body">
+                <div id="retentionChart"></div>
+            </div>
+        </div>
+    </div>
+</div>

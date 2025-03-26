@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="bi bi-upload me-2"></i>Importer des quiz</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5><i class="bi bi-filetype-json me-2"></i>Format JSON attendu :</h5>
+                        <pre class="bg-light p-3 rounded">{
+      "title": "Titre du quiz",
+      "description": "Description du quiz",
+      "questions": [
+        {
+          "text": "Question 1",
+          "reponse1": "Réponse A",
+          "reponse1_is_correct": true,
+          "reponse2": "Réponse B",
+          "reponse2_is_correct": false,
+          "reponse3": "Réponse C",
+          "reponse3_is_correct": false
+        }
+      ]
+    }</pre>
+                    </div>
+                    <div class="col-md-6">
+                        <h5><i class="bi bi-filetype-csv me-2"></i>Format CSV attendu :</h5>
+                        <pre class="bg-light p-3 rounded">title,description,question_text,reponse1,reponse1_correct,reponse2,reponse2_correct,reponse3,reponse3_correct
+    "Titre du quiz","Description du quiz","Question 1","Réponse A",1,"Réponse B",0,"Réponse C",0</pre>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="bi bi-upload"></i> Importer un Quiz</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'import_quiz' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Format d'import :</label>
+                            <select name="format_type" class="form-select" required>
+                                <option value="">-- Sélectionnez --</option>
+                                <option value="json">JSON</option>
+                                <option value="csv">CSV</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fichier :</label>
+                            <input type="file" name="file" class="form-control" accept=".json,.csv" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-file-earmark-arrow-up"></i> Importer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

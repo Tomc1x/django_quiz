@@ -39,7 +39,7 @@
           {% if user.is_authenticated %}
 
           <li class="nav-item dropdown">
-            <form action="{% url 'logout' %}" method="post">
+            <form autocomplete="off" action="{% url 'logout' %}" method="post">
 
               <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                 aria-expanded="false">

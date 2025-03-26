@@ -1,0 +1,116 @@
+{% load quiz_extras %} {# Chargement en haut du template #}
+
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-white py-3">
+                <h6 class="m-0 fw-bold text-primary">
+                    <i class="bi bi-trophy me-2"></i>Classement Général
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="50px">#</th>
+                                <th>Utilisateur</th>
+                                <th class="text-center">Quiz Complétés</th>
+                                <th class="text-center">Score Moyen</th>
+                                <th class="text-center">Progression</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in leaderboard %}
+                            <tr class="{% if user.id == request.user.id %}table-primary{% endif %}">
+                                <td class="fw-bold">{{ forloop.counter }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar me-3">
+                                            <span class="avatar-initial bg-primary rounded-circle">{{ request.user.username|first|upper }}</span>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold">{{ user.username }}</div>
+                                            <div class="text-muted small">{{ user.date_joined|date:"d/m/Y" }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">{{ user.total_quizzes }}</td>
+                                <td class="text-center">
+                                    <div class="progress progress-sm" style="height: 20px;">
+                                        <div class="progress-bar bg-{{ user.avg_score|score_color }}" role="progressbar"
+                                            style="width: {{ user.avg_score }}%" aria-valuenow="{{ user.avg_score }}"
+                                            aria-valuemin="0" aria-valuemax="100">
+                                            {{ user.avg_score }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    {% if user.progress > 0 %}
+                                    <i class="bi bi-arrow-up-circle-fill text-success"></i>
+                                    <span class="text-success">{{ user.progress }}%</span>
+                                    {% elif user.progress < 0 %} <i class="bi bi-arrow-down-circle-fill text-danger">
+                                        </i>
+                                        <span class="text-danger">{{ user.progress }}%</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-white py-3">
+                <h6 class="m-0 fw-bold text-primary">
+                    <i class="bi bi-award me-2"></i>Votre Position
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <div class="position-relative mb-4">
+                    <div id="rankBadge" class="badge-rank bg-primary text-white">
+                        {{ user_rank }}<sup>ème</sup>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="fw-bold">{{ request.user.username }}</h4>
+                        <div class="text-muted">Membre depuis {{ request.user.date_joined|date:"d/m/Y" }}</div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Score Moyen</span>
+                        <span class="fw-bold">{{ average_score }}%</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: {{ average_score }}%"
+                            aria-valuenow="{{ average_score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Top</span>
+                        <span class="fw-bold">{{ top_percent }}% des utilisateurs</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ top_percent }}%"
+                            aria-valuenow="{{ top_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button class="btn btn-outline-primary" type="button">
+                        <i class="bi bi-share me-2"></i>Partager
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

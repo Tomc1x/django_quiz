@@ -17,11 +17,23 @@ class LoginForm(AuthenticationForm):
         }))
 
 
+from django import forms
+from .models import Quiz
+
+
 class QuizForm(forms.ModelForm):
+    image = forms.ImageField(
+        required=False,
+        label="Image du quiz",
+        widget=forms.FileInput(attrs={
+            'accept': 'image/*',
+            'class': 'form-control',
+            'id': 'quizImageUpload'
+        }))
 
     class Meta:
         model = Quiz
-        fields = ['title', 'description']
+        fields = ['title', 'description', 'image']
 
 
 class QuestionForm(forms.ModelForm):

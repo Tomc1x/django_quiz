@@ -1,12 +1,131 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<div class="container mt-5">
-    <h1 class="mb-4">Ajouter un Quiz</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Ajouter</button>
-    </form>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-primary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Créer un nouveau quiz</h2>
+                        <a href="{% url 'custom_admin' %}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-left"></i> Retour
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <form autocomplete="off" method="post" id="quizForm" class="needs-validation" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Titre du Quiz -->
+                        <div class="mb-4">
+                            <label for="id_title" class="form-label fw-bold">
+                                <i class="bi bi-card-heading me-2"></i>Titre du quiz
+                            </label>
+                            <input type="text"
+                                class="form-control form-control-lg {% if form.title.errors %}is-invalid{% endif %}"
+                                id="id_title" name="title" value="{{ form.title.value|default:'' }}"
+                                placeholder="Ex: Culture générale - Niveau 1" required>
+                            {% if form.title.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.title.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="invalid-feedback">
+                                Veuillez saisir un titre pour le quiz.
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label for="id_description" class="form-label fw-bold">
+                                <i class="bi bi-text-paragraph me-2"></i>Description
+                            </label>
+                            <textarea class="form-control {% if form.description.errors %}is-invalid{% endif %}"
+                                id="id_description" name="description" rows="3"
+                                placeholder="Décrivez le contenu de ce quiz...">{{ form.description.value|default:'' }}</textarea>
+                            {% if form.description.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.description.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Image du Quiz -->
+                        <div class="mb-4">
+                            <label for="quizImageUpload" class="form-label fw-bold">
+                                <i class="bi bi-image me-2"></i>Image du quiz
+                            </label>
+                            <input type="file" class="form-control" id="quizImageUpload" name="image" accept="image/*">
+                            <div class="form-text">Téléchargez une image représentative pour ce quiz</div>
+                            <!-- Aperçu de l'image -->
+                            <div id="imagePreview" class="mt-2 text-center" style="display:none;">
+                                <img id="previewImage" src="#" alt="Aperçu de l'image" class="img-thumbnail"
+                                    style="max-height: 200px;">
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4 py-2">
+                                <i class="bi bi-save me-2"></i>Enregistrer le quiz
+                            </button>
+                            <button type="reset" class="btn btn-outline-secondary px-4 py-2">
+                                <i class="bi bi-eraser me-2"></i>Effacer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Validation côté client
+        const form = document.getElementById('quizForm');
+
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            form.classList.add('was-validated');
+        }, false);
+
+        // Réinitialise la validation quand on efface
+        form.querySelector('button[type="reset"]').addEventListener('click', function () {
+            form.classList.remove('was-validated');
+        });
+    });
+
+    // Aperçu de l'image avant upload
+    document.getElementById('quizImageUpload').addEventListener('change', function (e) {
+        const preview = document.getElementById('imagePreview');
+        const previewImage = document.getElementById('previewImage');
+
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                previewImage.src = e.target.result;
+                preview.style.display = 'block';
+            }
+
+            reader.readAsDataURL(this.files[0]);
+        } else {
+            preview.style.display = 'none';
+        }
+    });
+
+    // Optionnel: Upload direct vers Imgur si vous voulez un upload progressif
+    // (nécessite une configuration supplémentaire)
+</script>
 {% endblock %}

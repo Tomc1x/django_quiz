@@ -4,7 +4,7 @@
 <div class="container mt-5">
     <h1 class="mb-4">{{ quiz.title }}</h1>
 
-    <form method="post">
+    <form autocomplete="off" method="post">
         {% csrf_token %}
         {% for question in quiz.questions.all %}
         <div class="card mb-4">

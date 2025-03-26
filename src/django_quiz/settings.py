@@ -29,7 +29,6 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'sio-origin.alwaysdata.net']
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'login'  # Redirige vers la page de connexion après déconnexion
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -129,3 +128,6 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Imgur API configuration
+IMGUR_CLIENT_ID = '7c89ea4e0f2409d'  # À obtenir sur https://api.imgur.com/oauth2/addclient

@@ -1,19 +1,209 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<div class="container mt-5">
-    <h1 class="mb-4">
-    <a class="returnButton " href="javascript:history.back()"></a>
-    Ajouter une Question</h1>
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            {{ form.as_p }}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+            <h1 class="mb-0">Ajouter une question</h1>
         </div>
-        <div class="d-flex justify-content-between">
-            <button type="submit" class="btn btn-primary">Enregistrer</button>
-        </div>
-    </form>
-</div>
-{% endblock %}
+    </div>
 
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Nouvelle question</h4>
+        </div>
+
+        <div class="card-body">
+            <form autocomplete="off" method="post" id="questionForm">
+                {% csrf_token %}
+
+                <!-- Champ Texte de la question -->
+                <div class="mb-4">
+                    <label for="{{ form.text.id_for_label }}" class="form-label fw-bold">Texte de la question</label>
+                    {{ form.text }}
+                    <div class="form-text">Formulez clairement votre question</div>
+                </div>
+
+                <!-- Réponses -->
+                <div class="mb-3">
+                    <h5 class="mb-3">Réponses</h5>
+                    <div class="answers-container">
+                        <!-- Réponse 1 -->
+                        <div class="answer-group mb-3 p-3 border rounded" data-answer-id="1">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label fw-bold">Réponse 1</label>
+                                <div class="form-check form-switch">
+                                    {{ form.reponse1_is_correct }}
+                                    <label class="form-check-label"
+                                        for="{{ form.reponse1_is_correct.id_for_label }}">Correcte</label>
+                                </div>
+                            </div>
+                            {{ form.reponse1 }}
+                        </div>
+
+                        <!-- Réponse 2 -->
+                        <div class="answer-group mb-3 p-3 border rounded" data-answer-id="2">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label fw-bold">Réponse 2</label>
+                                <div class="form-check form-switch">
+                                    {{ form.reponse2_is_correct }}
+                                    <label class="form-check-label"
+                                        for="{{ form.reponse2_is_correct.id_for_label }}">Correcte</label>
+                                </div>
+                            </div>
+                            {{ form.reponse2 }}
+                        </div>
+
+                        <!-- Réponse 3 -->
+                        <div class="answer-group mb-3 p-3 border rounded" data-answer-id="3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label fw-bold">Réponse 3</label>
+                                <div class="form-check form-switch">
+                                    {{ form.reponse3_is_correct }}
+                                    <label class="form-check-label"
+                                        for="{{ form.reponse3_is_correct.id_for_label }}">Correcte</label>
+                                </div>
+                            </div>
+                            {{ form.reponse3 }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                        <i class="bi bi-x-circle"></i> Annuler
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Enregistrer la question
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .answer-group {
+        transition: all 0.3s ease;
+        background-color: rgba(248, 249, 250, 0.5);
+    }
+
+    .answer-group:hover {
+        background-color: rgba(13, 110, 253, 0.05);
+        border-color: rgba(13, 110, 253, 0.3) !important;
+    }
+
+    .form-check-input:checked {
+        background-color: #198754;
+        border-color: #198754;
+    }
+
+    textarea.form-control,
+    input[type="text"].form-control {
+        min-height: 38px;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Désactivation complète de l'autocomplétion
+        document.querySelectorAll('input').forEach(input => {
+            input.setAttribute('autocomplete', 'new-password'); // Plus efficace que 'off' pour certains navigateurs
+            input.setAttribute('autocorrect', 'off');
+            input.setAttribute('autocapitalize', 'off');
+            input.setAttribute('spellcheck', 'false');
+        });
+
+        // Gestion exclusive des réponses correctes
+        const correctSwitches = document.querySelectorAll('.form-check-input');
+
+        correctSwitches.forEach(switchEl => {
+            // Initialisation - Désactive tous les switches sauf le premier si aucun n'est coché
+            if (!Array.from(correctSwitches).some(sw => sw.checked)) {
+                correctSwitches[0].checked = true;
+            }
+
+            switchEl.addEventListener('change', function () {
+                if (this.checked) {
+                    // Désactive toutes les autres cases
+                    correctSwitches.forEach(otherSwitch => {
+                        if (otherSwitch !== this) {
+                            otherSwitch.checked = false;
+                            otherSwitch.dispatchEvent(new Event('change'));
+                        }
+                    });
+                } else {
+                    // Empêche de décocher si c'est la seule case cochée
+                    const checkedCount = Array.from(correctSwitches).filter(sw => sw.checked).length;
+                    if (checkedCount === 0) {
+                        this.checked = true;
+                        // Affiche un feedback visuel
+                        this.parentElement.classList.add('text-danger');
+                        setTimeout(() => {
+                            this.parentElement.classList.remove('text-danger');
+                        }, 1000);
+                    }
+                }
+            });
+
+            // Feedback visuel au survol
+            switchEl.addEventListener('mouseover', function () {
+                this.parentElement.classList.add('text-primary');
+            });
+
+            switchEl.addEventListener('mouseout', function () {
+                this.parentElement.classList.remove('text-primary');
+            });
+        });
+
+        // Validation du formulaire
+        const form = document.getElementById('questionForm');
+        form.addEventListener('submit', function (e) {
+            // Vérifie qu'au moins une réponse est correcte (normalement impossible à violer)
+            const hasCorrectAnswer = Array.from(correctSwitches).some(sw => sw.checked);
+
+            if (!hasCorrectAnswer) {
+                e.preventDefault();
+                showAlert('danger', 'Vous devez sélectionner une réponse correcte !');
+                return;
+            }
+
+            // Vérification que toutes les réponses sont remplies
+            const answerInputs = document.querySelectorAll('input[id*="reponse"]');
+            const emptyAnswers = Array.from(answerInputs).filter(input => input.value.trim() === '');
+
+            if (emptyAnswers.length > 0) {
+                e.preventDefault();
+                emptyAnswers.forEach(input => {
+                    input.classList.add('is-invalid');
+                    input.addEventListener('input', function () {
+                        if (this.value.trim() !== '') {
+                            this.classList.remove('is-invalid');
+                        }
+                    });
+                });
+                showAlert('danger', 'Veuillez remplir toutes les réponses !');
+            }
+        });
+
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            form.prepend(alertDiv);
+
+            // Fermeture automatique après 5s
+            setTimeout(() => {
+                alertDiv.classList.remove('show');
+                setTimeout(() => alertDiv.remove(), 150);
+            }, 5000);
+        }
+    });
+</script>
+{% endblock %}
