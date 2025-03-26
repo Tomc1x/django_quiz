@@ -456,8 +456,16 @@ def add_quiz(request):
 @login_required
 def quiz_list(request):
     quizzes = Quiz.objects.all()
-    return render(request, 'app/quiz_list.html', {'quizzes': quizzes})
-
+    
+    # Calculer le temps moyen par quiz
+    quizzes_with_avg_time = quizzes.annotate(
+        average_completion_time=Avg('userquizresult__completion_time')
+    )
+    
+    context = {
+        'quizzes': quizzes_with_avg_time,
+    }
+    return render(request, 'app/quiz_list.html', context)
 
 @login_required
 def take_quiz(request, quiz_id):

@@ -22,7 +22,6 @@
                     <div class="postcard__preview-txt ">{{quiz.description}}</div>
                     <ul class="postcard__tagbox">
                         <li class="tag__item"><i class="bi bi-tag me-2"></i>{{ quiz.questions.count }} questions</li>
-                        <li class="tag__item"><i class="bi bi-clock me-2"></i>Temps moyen</li>
                         <li class="tag__item play blue">
                             <a href="{% url 'take_quiz' quiz.id %}"><i class="bi bi-play me-2"></i>Faire le quiz</a>
                         </li>

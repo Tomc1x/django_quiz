@@ -94,12 +94,3 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 
-@receiver(post_save, sender=Quiz)
-def notify_new_quiz(sender, instance, created, **kwargs):
-    if created:
-        Message.objects.create(
-            title=f"Nouveau quiz : {instance.title}",
-            content=f"Un nouveau quiz '{instance.title}' est disponible !",
-            message_type="QUIZ",
-            author=instance.author,
-            is_public=True)
