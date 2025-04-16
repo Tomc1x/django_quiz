@@ -97,7 +97,7 @@ class QuizForm(forms.ModelForm):
 
     class Meta:
         model = Quiz
-        fields = ['title', 'description', 'image']
+        fields = ['title', 'description', 'theme', 'image']
 
 
 class QuestionForm(forms.ModelForm):

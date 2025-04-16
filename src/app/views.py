@@ -548,6 +548,7 @@ class QuizExportView(View):
         data = {
             "title": quiz.title,
             "description": quiz.description,
+            "theme": quiz.theme,  # Ajout du thème
             "questions": []
         }
 
@@ -574,22 +575,26 @@ class QuizExportView(View):
             'Content-Disposition'] = f'attachment; filename="{quiz.title}.csv"'
 
         writer = csv.writer(response)
-        # En-tête
+        # Modifiez l'en-tête pour inclure le thème
         writer.writerow([
-            'title', 'description', 'question_text', 'reponse1',
+            'title', 'description', 'theme', 'question_text', 'reponse1',
             'reponse1_correct', 'reponse2', 'reponse2_correct', 'reponse3',
             'reponse3_correct'
         ])
 
         for question in quiz.questions.all():
             writer.writerow([
-                quiz.title, quiz.description, question.text, question.reponse1,
-                int(question.reponse1_is_correct), question.reponse2,
-                int(question.reponse2_is_correct), question.reponse3,
+                quiz.title,
+                quiz.description,
+                quiz.theme,
+                question.text,  # Ajout du thème
+                question.reponse1,
+                int(question.reponse1_is_correct),
+                question.reponse2,
+                int(question.reponse2_is_correct),
+                question.reponse3,
                 int(question.reponse3_is_correct)
             ])
-
-        return response
 
 
 class QuizImportView(View):
@@ -617,9 +622,11 @@ class QuizImportView(View):
     def import_from_json(self, request, file):
         data = json.load(file)
 
-        quiz = Quiz.objects.create(title=data['title'],
-                                   description=data['description'])
-
+        quiz = Quiz.objects.create(
+            title=data['title'],
+            description=data['description'],
+            theme=data.get('theme', 'autre')  # Valeur par défaut si absent
+        )
         for q_data in data['questions']:
             Question.objects.create(
                 quiz=quiz,
@@ -643,9 +650,12 @@ class QuizImportView(View):
 
         for row in reader:
             if not quiz:
-                quiz = Quiz.objects.create(title=row['title'],
-                                           description=row['description'])
-
+                quiz = Quiz.objects.create(
+                    title=row['title'],
+                    description=row['description'],
+                    theme=row.get('theme',
+                                  'autre')  # Valeur par défaut si absent
+                )
             Question.objects.create(
                 quiz=quiz,
                 text=row['question_text'],
