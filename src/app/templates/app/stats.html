@@ -1,15 +1,89 @@
 {% extends 'base.html' %}
-{% load quiz_extras %} {# Chargement en haut du template #}
-
+{% load quiz_extras %}
 {% load static %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-primary">
-            <i class="bi bi-graph-up me-2"></i>Mes Statistiques
-        </h1>
+    <!-- Header avec informations utilisateur -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 text-primary">
+                <i class="bi bi-graph-up me-2"></i>Mes Statistiques
+            </h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#profileModal">
+                <i class="bi bi-person-gear me-1"></i>Modifier le profil
+            </button>
+        </div>
+    </div>
+
+    <!-- Carte d'information utilisateur -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-2 text-center">
+                    <div class="avatar-circle bg-primary text-white mb-2">
+                        <span class="initials">{{ request.user.username|first|upper }}</span>
+                    </div>
+                </div>
+                <div class="col-md-10">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h5 class="mb-1">{{ request.user.username }}</h5>
+                            <p class="text-muted mb-2">{{ request.user.email }}</p>
+                            <p class="small text-muted mb-0">
+                                Membre depuis le {{ request.user.date_joined|date:"d/m/Y" }}
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-trophy-fill text-warning me-2"></i>
+                                <div>
+                                    <p class="mb-0 small text-muted">Classement</p>
+                                    <p class="mb-0 fw-bold">
+                                        {% if user_rank %}
+                                        #{{ user_rank }} (Top {{ top_percent }}%)
+                                        {% else %}
+                                        Non classé
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                <div>
+                                    <p class="mb-0 small text-muted">Quiz complétés</p>
+                                    <p class="mb-0 fw-bold">{{ results.count }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-star-fill text-info me-2"></i>
+                                <div>
+                                    <p class="mb-0 small text-muted">Score moyen</p>
+                                    <p class="mb-0 fw-bold">{{ average_score|default:"0" }}%</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-clock-fill text-secondary me-2"></i>
+                                <div>
+                                    <p class="mb-0 small text-muted">Temps moyen</p>
+                                    <p class="mb-0 fw-bold">
+                                        {% if quiz_stats.0.completion_time_avg %}
+                                        {{ quiz_stats.0.completion_time_avg }} sec
+                                        {% else %}
+                                        N/A
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Navigation par Onglets -->
@@ -20,21 +94,77 @@
                 <i class="bi bi-journal-bookmark me-2"></i>Par Quiz
             </button>
         </li>
-
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="ranking-tab" data-bs-toggle="tab" data-bs-target="#ranking" type="button">
+                <i class="bi bi-trophy me-2"></i>Classement
+            </button>
+        </li>
     </ul>
 
     <!-- Contenu des Onglets -->
     <div class="tab-content" id="statsTabsContent">
-
         <!-- Onglet Par Quiz -->
         <div class="tab-pane fade show active" id="quizzes" role="tabpanel">
             {% include 'app/stats/quizzes_stats.html' %}
         </div>
 
-
         <!-- Onglet Classement -->
         <div class="tab-pane fade" id="ranking" role="tabpanel">
             {% include 'app/stats/ranking_stats.html' %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal Modification Profil -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Modifier mon profil</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'update_profile' %}">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nom d'utilisateur</label>
+                            <input type="text" class="form-control" value="{{ request.user.username }}" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Adresse email</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                value="{{ request.user.email }}" required>
+                        </div>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">Changer le mot de passe</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="current_password" class="form-label">Mot de passe actuel</label>
+                                <input type="password" class="form-control" id="current_password"
+                                    name="current_password">
+                            </div>
+                            <div class="mb-3">
+                                <label for="new_password1" class="form-label">Nouveau mot de passe</label>
+                                <input type="password" class="form-control" id="new_password1" name="new_password1">
+                            </div>
+                            <div class="mb-0">
+                                <label for="new_password2" class="form-label">Confirmer le nouveau mot de passe</label>
+                                <input type="password" class="form-control" id="new_password2" name="new_password2">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -71,4 +201,21 @@
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script src="{% static 'js/stats.js' %}"></script>
+
+<style>
+    .avatar-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        font-weight: bold;
+    }
+
+    .initials {
+        line-height: 1;
+    }
+</style>
 {% endblock %}

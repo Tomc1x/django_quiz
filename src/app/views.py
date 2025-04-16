@@ -23,6 +23,7 @@ from django.views.generic import TemplateView
 from .forms import LoginForm, QuestionForm, QuizForm, RegisterForm
 from .imgur_uploader import ImgurUploader
 from .models import Question, Quiz, UserQuizResult
+from django.contrib.auth import update_session_auth_hash
 
 
 def login_view(request):
@@ -456,16 +457,16 @@ def add_quiz(request):
 @login_required
 def quiz_list(request):
     quizzes = Quiz.objects.all()
-    
+
     # Calculer le temps moyen par quiz
     quizzes_with_avg_time = quizzes.annotate(
-        average_completion_time=Avg('userquizresult__completion_time')
-    )
-    
+        average_completion_time=Avg('userquizresult__completion_time'))
+
     context = {
         'quizzes': quizzes_with_avg_time,
     }
     return render(request, 'app/quiz_list.html', context)
+
 
 @login_required
 def take_quiz(request, quiz_id):
@@ -842,3 +843,40 @@ def send_message(request):
         form = MessageForm()
 
     return render(request, 'app/send_message.html', {'form': form})
+
+
+@login_required
+def update_profile(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        current_password = request.POST.get('current_password')
+        new_password1 = request.POST.get('new_password1')
+        new_password2 = request.POST.get('new_password2')
+
+        user = request.user
+
+        # Mise à jour de l'email
+        if email != user.email:
+            user.email = email
+            messages.success(request, 'Adresse email mise à jour avec succès.')
+
+        # Changement de mot de passe si tous les champs sont remplis
+        if current_password and new_password1 and new_password2:
+            if user.check_password(current_password):
+                if new_password1 == new_password2:
+                    user.set_password(new_password1)
+                    messages.success(request,
+                                     'Mot de passe changé avec succès.')
+                    # Reconnecter l'utilisateur après changement de mot de passe
+                    update_session_auth_hash(request, user)
+                else:
+                    messages.error(
+                        request,
+                        'Les nouveaux mots de passe ne correspondent pas.')
+            else:
+                messages.error(request, 'Mot de passe actuel incorrect.')
+
+        user.save()
+        return redirect('stats')
+
+    return redirect('stats')

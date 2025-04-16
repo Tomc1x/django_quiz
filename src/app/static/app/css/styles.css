@@ -11,7 +11,7 @@ body {
 
 .navbar {
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    background: white !important;
+    background: #4F4845 !important;
 }
 
 .logs-col {
@@ -285,7 +285,8 @@ body {
 
 /* Footer */
 footer {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    background-color: #4F4845;
+    margin-top: 10rem !important;
 }
 
 footer a {
