@@ -46,6 +46,7 @@ class Message(models.Model):
 
 
 class Quiz(models.Model):
+    theme = models.CharField(max_length=200, null=True, blank=True)
     title = models.CharField(max_length=200)
     description = models.TextField()
     image_url = models.URLField(blank=True,
@@ -92,5 +93,3 @@ class UserQuizResult(models.Model):
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
-
