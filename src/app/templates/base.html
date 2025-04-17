@@ -27,7 +27,9 @@
   <nav class="navbar navbar-dark navbar-expand-lg shadow-sm ">
     <div class="container-fluid">
       <a class="navbar-brand fw-bold" href="{% url 'quiz_list' %}">
-        <i class="bi bi-question-circle me-2"></i>Django_quiz
+        <img src="{% static 'app/images/crab.png' %}" style="width: 60px;
+" alt="">
+        Quiz Crabe
       </a>
 
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
@@ -92,7 +94,8 @@
               <i class="bi bi-person-circle"></i> {{ user.username }}
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="{% url 'stats' %}"><i class="bi bi-graph-up"></i> Statistiques</a></li>
+              <li><a class="dropdown-item" href="{% url 'stats' %}"><i class="bi bi-person-circle"></i> Mon Profil</a>
+              </li>
               {% if user.is_staff %}
               <li><a class="dropdown-item" href="{% url 'custom_admin' %}"><i class="bi bi-gear"></i> Administration</a>
               </li>

@@ -11,7 +11,7 @@ def score_color(value):
         if score >= 90: return 'success'
         if score >= 75: return 'primary'
         if score >= 50: return 'warning'
-        return 'text-danger'
+        return 'danger'
     except (ValueError, TypeError):
         return ''
 

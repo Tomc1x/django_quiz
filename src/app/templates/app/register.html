@@ -58,6 +58,31 @@
                                         {% endif %}
                                     </div>
 
+                                    <div class="d-flex gap-2">
+                                        <div class="form-outline mb-4 text-white">
+                                            <label class="form-label">Nom (facultatif)</label>
+                                            {{ form.last_name }}
+                                            {% if form.last_name.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.last_name.errors %}
+                                                <small>{{ error }}</small><br>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="form-outline mb-4 text-white">
+                                            <label class="form-label">Prénom (facultatif)</label>
+                                            {{ form.first_name }}
+                                            {% if form.first_name.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.first_name.errors %}
+                                                <small>{{ error }}</small><br>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
                                     <div class="form-outline mb-4 text-white">
                                         <label class="form-label">Mot de passe</label>
                                         {{ form.password1 }}

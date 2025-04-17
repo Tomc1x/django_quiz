@@ -35,10 +35,12 @@
                         </td>
                         <td class="text-center align-middle">{{ stat.attempts }}</td>
                         <td class="text-center align-middle">
-                            <span class="badge bg-success rounded-pill">{{ stat.best_score }}%</span>
+                            <span class="badge bg-{{ stat.last_score|score_color }} rounded-pill">
+                                {{ stat.best_score }}%</span>
                         </td>
                         <td class="text-center align-middle">
-                            <span class="badge bg-{{ stat.last_score|score_color }} rounded-pill">{{ stat.last_score }}%</span>
+                            <span class="badge bg-{{ stat.last_score|score_color }} rounded-pill">
+                                {{ stat.last_score }}%</span>
                         </td>
                         <td class="text-center align-middle">
                             {% if stat.progress > 0 %}

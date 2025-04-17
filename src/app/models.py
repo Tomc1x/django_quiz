@@ -46,8 +46,9 @@ class Message(models.Model):
 
 
 class Quiz(models.Model):
-    theme = models.CharField(max_length=200, null=True, blank=True)
     title = models.CharField(max_length=200)
+    theme = models.CharField(max_length=200, null=True, blank=True)
+    level = models.IntegerField(default=1, null=True, blank=True)
     description = models.TextField()
     image_url = models.URLField(blank=True,
                                 null=True)  # Lien vers l'image sur Imgur
@@ -83,13 +84,22 @@ class UserQuizResult(models.Model):
     score = models.IntegerField()
     completion_time = models.PositiveIntegerField(default=0)  # en secondes
     completed_at = models.DateTimeField(auto_now_add=True)
+    calculated_points = models.FloatField(
+        default=0)  # Nouveau champ pour stocker les points calculés
 
     class Meta:
         ordering = ['-completed_at']
+        indexes = [
+            models.Index(fields=['user', 'quiz']),
+            models.Index(fields=['-calculated_points']),
+        ]
+
+    def save(self, *args, **kwargs):
+        # Calcul des points selon la formule (score * niveau) / temps (en minutes)
+        time_factor = max(1, self.completion_time /
+                          60)  # Éviter la division par 0
+        self.calculated_points = (self.score * self.quiz.level) / time_factor
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.username} - {self.quiz.title} ({self.score})"
-
-
-from django.db.models.signals import post_save
-from django.dispatch import receiver

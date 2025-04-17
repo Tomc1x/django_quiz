@@ -290,6 +290,78 @@ def stats(request):
     return render(request, 'app/stats.html', context)
 
 
+from django.db.models import Sum, Count, F, Window, FloatField
+from django.db.models.functions import DenseRank
+from django.contrib.auth import get_user_model
+from .models import UserQuizResult, Quiz
+
+User = get_user_model()
+
+
+class RankingSystem:
+
+    @classmethod
+    def get_global_ranking(cls, limit=100):
+        """Classement général basé sur les points cumulés"""
+        return User.objects.annotate(
+            total_points=Sum('userquizresult__calculated_points'),
+            total_quizzes=Count('userquizresult'),
+            avg_score=Sum('userquizresult__score') * 1.0 /
+            Sum('userquizresult__quiz__questions__count'),
+            rank=Window(expression=DenseRank(),
+                        order_by=F('total_points').desc())).filter(
+                            total_points__isnull=False).order_by(
+                                '-total_points')[:limit]
+
+    @classmethod
+    def get_quiz_ranking(cls, quiz_id, limit=50):
+        """Classement spécifique à un quiz"""
+        return UserQuizResult.objects.filter(quiz_id=quiz_id).annotate(
+            rank=Window(expression=DenseRank(),
+                        order_by=F(
+                            'calculated_points').desc())).select_related(
+                                'user',
+                                'quiz').order_by('-calculated_points')[:limit]
+
+    @classmethod
+    def get_user_rank(cls, user):
+        """Position de l'utilisateur dans le classement général"""
+        rank = User.objects.annotate(
+            total_points=Sum('userquizresult__calculated_points')).filter(
+                total_points__gt=User.objects.filter(pk=user.pk).annotate(
+                    user_points=Sum('userquizresult__calculated_points')).
+                values('user_points')[0]['user_points']).count() + 1
+
+        total_users = User.objects.annotate(
+            total_points=Sum('userquizresult__calculated_points')).filter(
+                total_points__isnull=False).count()
+
+        return {
+            'rank':
+            rank,
+            'top_percent':
+            round((rank / total_users) * 100, 1) if total_users > 0 else 0,
+            'total_users':
+            total_users
+        }
+
+    @classmethod
+    def get_user_stats(cls, user):
+        """Statistiques détaillées de l'utilisateur"""
+        stats = UserQuizResult.objects.filter(user=user).aggregate(
+            total_points=Sum('calculated_points'),
+            total_quizzes=Count('id'),
+            total_questions=Sum('quiz__questions__count'),
+            total_correct=Sum('score'),
+            avg_time=Avg('completion_time'))
+
+        stats['accuracy'] = round(
+            (stats['total_correct'] / stats['total_questions'] *
+             100), 1) if stats['total_questions'] else 0
+
+        return stats
+
+
 def custom_logout(request):
     logout(request)  # Déconnecte l'utilisateur
     messages.success(
@@ -308,24 +380,35 @@ def privacy_view(request):
 
 # Administration
 @login_required
-@user_passes_test(
-    lambda u: u.is_staff)  # Seuls les administrateurs peuvent accéder
+@user_passes_test(lambda u: u.is_staff)
 def admin_quiz_detail(request, quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
-    questions = quiz.questions.all()  # Récupère toutes les questions du quiz
+    questions = quiz.questions.all()
+
     if request.method == 'POST':
         if 'delete_quiz' in request.POST:
-            print('delete_quiz')
             quiz.delete()
             messages.success(request, 'Le quiz a été supprimé avec succès.')
             return redirect('custom_admin')
+        elif 'update_quiz' in request.POST:
+            form = QuizForm(request.POST, instance=quiz)
+            if form.is_valid():
+                form.save()
+                messages.success(request,
+                                 'Le quiz a été mis à jour avec succès.')
+                return redirect('admin_quiz_detail', quiz_id=quiz.id)
+            else:
+                # Le formulaire invalide sera réaffiché avec les erreurs
+                pass
         elif 'go_back' in request.POST:
-            print('go back')
             return redirect('custom_admin')
+    else:
+        form = QuizForm(instance=quiz)
 
     return render(request, 'app/admin/quiz_detail.html', {
         'quiz': quiz,
-        'questions': questions
+        'questions': questions,
+        'form': form
     })
 
 
@@ -454,16 +537,26 @@ def add_quiz(request):
     })
 
 
+from collections import defaultdict
+
+
 @login_required
 def quiz_list(request):
-    quizzes = Quiz.objects.all()
+    # Récupérer tous les quiz triés par niveau
+    quizzes = Quiz.objects.all().order_by('level')
 
-    # Calculer le temps moyen par quiz
-    quizzes_with_avg_time = quizzes.annotate(
-        average_completion_time=Avg('userquizresult__completion_time'))
+    # Grouper les quiz par thème
+    quizzes_by_theme = defaultdict(list)
+    for quiz in quizzes:
+        theme = quiz.theme if quiz.theme else "Autres"
+        quizzes_by_theme[theme].append(quiz)
+
+    # Convertir en liste de tuples pour le template
+    quizzes_by_theme = sorted(quizzes_by_theme.items(), key=lambda x: x[0])
 
     context = {
-        'quizzes': quizzes_with_avg_time,
+        'quizzes_by_theme': quizzes_by_theme,
+        'quizzes': quizzes,
     }
     return render(request, 'app/quiz_list.html', context)
 
@@ -549,6 +642,7 @@ class QuizExportView(View):
             "title": quiz.title,
             "description": quiz.description,
             "theme": quiz.theme,  # Ajout du thème
+            "level": quiz.level,
             "questions": []
         }
 
@@ -577,9 +671,9 @@ class QuizExportView(View):
         writer = csv.writer(response)
         # Modifiez l'en-tête pour inclure le thème
         writer.writerow([
-            'title', 'description', 'theme', 'question_text', 'reponse1',
-            'reponse1_correct', 'reponse2', 'reponse2_correct', 'reponse3',
-            'reponse3_correct'
+            'title', 'description', 'theme', 'level', 'question_text',
+            'reponse1', 'reponse1_correct', 'reponse2', 'reponse2_correct',
+            'reponse3', 'reponse3_correct'
         ])
 
         for question in quiz.questions.all():
@@ -587,6 +681,7 @@ class QuizExportView(View):
                 quiz.title,
                 quiz.description,
                 quiz.theme,
+                quiz.level,
                 question.text,  # Ajout du thème
                 question.reponse1,
                 int(question.reponse1_is_correct),
@@ -625,8 +720,8 @@ class QuizImportView(View):
         quiz = Quiz.objects.create(
             title=data['title'],
             description=data['description'],
-            theme=data.get('theme', 'autre')  # Valeur par défaut si absent
-        )
+            theme=data.get('theme', 'autre'),  # Valeur par défaut si absent
+            level=data.get('level', 2))
         for q_data in data['questions']:
             Question.objects.create(
                 quiz=quiz,
@@ -654,8 +749,8 @@ class QuizImportView(View):
                     title=row['title'],
                     description=row['description'],
                     theme=row.get('theme',
-                                  'autre')  # Valeur par défaut si absent
-                )
+                                  'autre'),  # Valeur par défaut si absent
+                    level=int(row.get('level', 2)))
             Question.objects.create(
                 quiz=quiz,
                 text=row['question_text'],
@@ -715,26 +810,64 @@ def import_from_json(self, file):
 
 @login_required
 def leaderboard(request):
-    # Classement complet avec plus de détails
-    leaderboard = UserQuizResult.objects.values(
-        'user__username', 'user__id').annotate(
-            total_quizzes=Count('id'),
-            avg_score=Avg('score'),
-            last_activity=Max('completed_at')).order_by('-avg_score')
+    # 1. On récupère d'abord tous les utilisateurs ayant des résultats
+    users_with_results = User.objects.filter(
+        userquizresult__isnull=False).distinct()
+
+    # 2. On prépare une liste pour stocker les statistiques
+    leaderboard_data = []
+
+    for user in users_with_results:
+        # Récupère tous les résultats de l'utilisateur
+        results = UserQuizResult.objects.filter(user=user)
+
+        # Calcule le nombre total de quizzes tentés
+        total_quizzes = results.count()
+
+        # Calcule le score total (somme des scores)
+        total_score = results.aggregate(Sum('score'))['score__sum'] or 0
+
+        # Calcule le total des questions (somme des questions de chaque quiz)
+        total_questions = sum(result.quiz.questions.count()
+                              for result in results)
+
+        # Calcule le pourcentage moyen de réussite
+        if total_questions > 0:
+            avg_percentage = round((total_score / total_questions) * 100, 1)
+        else:
+            avg_percentage = 0
+
+        # Dernière activité
+        last_activity = results.aggregate(
+            Max('completed_at'))['completed_at__max']
+
+        leaderboard_data.append({
+            'user': user,
+            'total_quizzes': total_quizzes,
+            'avg_percentage': avg_percentage,
+            'last_activity': last_activity,
+            'total_score': total_score,
+            'total_questions': total_questions
+        })
+
+    # Trie par pourcentage moyen décroissant
+    leaderboard_data.sort(key=lambda x: x['avg_percentage'], reverse=True)
 
     # Position de l'utilisateur actuel
     user_position = None
-    for idx, entry in enumerate(leaderboard, start=1):
-        if entry['user__id'] == request.user.id:
+    for idx, entry in enumerate(leaderboard_data, start=1):
+        if entry['user'].id == request.user.id:
             user_position = {
                 'position': idx,
                 'total_quizzes': entry['total_quizzes'],
-                'avg_score': entry['avg_score']
+                'avg_percentage': entry['avg_percentage'],
+                'total_score': entry['total_score'],
+                'total_questions': entry['total_questions']
             }
             break
 
     context = {
-        'leaderboard': leaderboard[:100],  # Top 100
+        'leaderboard': leaderboard_data[:100],  # Top 100
         'user_position': user_position,
     }
     return render(request, 'app/leaderboard.html', context)
@@ -859,25 +992,40 @@ def send_message(request):
 def update_profile(request):
     if request.method == 'POST':
         email = request.POST.get('email')
+        first_name = request.POST.get(
+            'first_name',
+            '').strip()  # Convertit None en '' et supprime les espaces
+        last_name = request.POST.get(
+            'last_name',
+            '').strip()  # Convertit None en '' et supprime les espaces
         current_password = request.POST.get('current_password')
         new_password1 = request.POST.get('new_password1')
         new_password2 = request.POST.get('new_password2')
 
         user = request.user
 
-        # Mise à jour de l'email
-        if email != user.email:
+        # Mise à jour des champs seulement s'ils sont fournis
+        if email and email != user.email:
             user.email = email
             messages.success(request, 'Adresse email mise à jour avec succès.')
 
-        # Changement de mot de passe si tous les champs sont remplis
+        # Mise à jour du prénom (peut être vide)
+        user.first_name = first_name
+        if first_name:
+            messages.success(request, 'Prénom mis à jour avec succès.')
+
+        # Mise à jour du nom de famille (peut être vide)
+        user.last_name = last_name
+        if last_name:
+            messages.success(request, 'Nom de famille mis à jour avec succès.')
+
+        # Changement de mot de passe
         if current_password and new_password1 and new_password2:
             if user.check_password(current_password):
                 if new_password1 == new_password2:
                     user.set_password(new_password1)
                     messages.success(request,
                                      'Mot de passe changé avec succès.')
-                    # Reconnecter l'utilisateur après changement de mot de passe
                     update_session_auth_hash(request, user)
                 else:
                     messages.error(

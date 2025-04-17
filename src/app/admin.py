@@ -12,8 +12,13 @@ class QuestionInline(admin.TabularInline):
 # Configuration pour les quiz (Quiz)
 @admin.register(Quiz)
 class QuizAdmin(admin.ModelAdmin):
-    list_display = ('title', 'description'
-                    )  # Colonnes affichées dans la liste des quiz
+    list_display = (
+        'title',
+        'description',
+        'theme',
+        'level',
+        'created_at',
+    )  # Colonnes affichées dans la liste des quiz
     search_fields = ('title', )  # Permet de rechercher par titre
     inlines = [QuestionInline]  # Inclut les questions dans la page du quiz
 
