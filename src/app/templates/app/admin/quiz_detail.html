@@ -24,7 +24,7 @@
     </div>
 
     <!-- Description du quiz -->
-    <div class="card shadow-sm mb-4">
+    <div class="card card-effect shadow-sm mb-4">
         <div class="card-body">
             <p class="card-text">{{ quiz.description }}</p>
         </div>
@@ -34,7 +34,7 @@
     <form autocomplete="off" method="post" enctype="multipart/form-data" id="quizForm"
         class="needs-validation card shadow-sm mb-4" novalidate>
         {% csrf_token %}
-        <div class="card-header bg-primary text-white">
+        <div class="card-header text-white">
             <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Métadonnées du quiz</h5>
         </div>
 
@@ -101,9 +101,9 @@
         </div>
     </form>
 
-    <div class="card shadow-sm mb-4">
+    <div class="card card-effect shadow-sm mb-4">
 
-        <div class="card-header bg-primary text-white">
+        <div class="card-header text-white">
             <h5 class="mb-0"><i class="bi bi-image me-2"></i>Image du quiz</h5>
         </div>
         <div class="card-body text-center">
@@ -186,8 +186,8 @@
     </script>
 
     <!-- Liste des questions -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
+    <div class="card card-effect shadow-sm">
+        <div class="card-header text-white">
             <h4 class="mb-0">Questions du quiz</h4>
         </div>
 

@@ -12,26 +12,22 @@
         </div>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
+    <div class="card card-effect shadow-sm">
+        <div class="card-header text-white">
             <h4 class="mb-0">Édition de question</h4>
         </div>
-        
+
         <div class="card-body">
             <form method="post" id="editQuestionForm" autocomplete="off">
                 {% csrf_token %}
-                
+
                 <!-- Champ Texte de la question -->
                 <div class="mb-4">
                     <label for="{{ form.text.id_for_label }}" class="form-label fw-bold">Texte de la question</label>
-                    <textarea class="form-control" 
-                              id="{{ form.text.id_for_label }}" 
-                              name="{{ form.text.html_name }}" 
-                              rows="3"
-                              autocomplete="off"
-                              required>{{ form.text.value }}</textarea>
+                    <textarea class="form-control" id="{{ form.text.id_for_label }}" name="{{ form.text.html_name }}"
+                        rows="3" autocomplete="off" required>{{ form.text.value }}</textarea>
                 </div>
-                
+
                 <!-- Réponses -->
                 <div class="mb-3">
                     <h5 class="mb-3">Réponses</h5>
@@ -41,66 +37,54 @@
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <label class="form-label fw-bold">Réponse 1</label>
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input correct-answer" 
-                                           type="checkbox" 
-                                           id="{{ form.reponse1_is_correct.id_for_label }}" 
-                                           name="{{ form.reponse1_is_correct.html_name }}"
-                                           {% if form.reponse1_is_correct.value %}checked{% endif %}>
-                                    <label class="form-check-label" for="{{ form.reponse1_is_correct.id_for_label }}">Correcte</label>
+                                    <input class="form-check-input correct-answer" type="checkbox"
+                                        id="{{ form.reponse1_is_correct.id_for_label }}"
+                                        name="{{ form.reponse1_is_correct.html_name }}" {% if
+                                        form.reponse1_is_correct.value %}checked{% endif %}>
+                                    <label class="form-check-label"
+                                        for="{{ form.reponse1_is_correct.id_for_label }}">Correcte</label>
                                 </div>
                             </div>
-                            <input type="text" 
-                                   class="form-control" 
-                                   id="{{ form.reponse1.id_for_label }}" 
-                                   name="{{ form.reponse1.html_name }}" 
-                                   value="{{ form.reponse1.value }}"
-                                   required>
+                            <input type="text" class="form-control" id="{{ form.reponse1.id_for_label }}"
+                                name="{{ form.reponse1.html_name }}" value="{{ form.reponse1.value }}" required>
                         </div>
-                        
+
                         <!-- Réponse 2 -->
                         <div class="answer-group mb-3 p-3 border rounded">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <label class="form-label fw-bold">Réponse 2</label>
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input correct-answer" 
-                                           type="checkbox" 
-                                           id="{{ form.reponse2_is_correct.id_for_label }}" 
-                                           name="{{ form.reponse2_is_correct.html_name }}"
-                                           {% if form.reponse2_is_correct.value %}checked{% endif %}>
-                                    <label class="form-check-label" for="{{ form.reponse2_is_correct.id_for_label }}">Correcte</label>
+                                    <input class="form-check-input correct-answer" type="checkbox"
+                                        id="{{ form.reponse2_is_correct.id_for_label }}"
+                                        name="{{ form.reponse2_is_correct.html_name }}" {% if
+                                        form.reponse2_is_correct.value %}checked{% endif %}>
+                                    <label class="form-check-label"
+                                        for="{{ form.reponse2_is_correct.id_for_label }}">Correcte</label>
                                 </div>
                             </div>
-                            <input type="text" 
-                                   class="form-control" 
-                                   id="{{ form.reponse2.id_for_label }}" 
-                                   name="{{ form.reponse2.html_name }}" 
-                                   value="{{ form.reponse2.value }}"
-                                   required>
+                            <input type="text" class="form-control" id="{{ form.reponse2.id_for_label }}"
+                                name="{{ form.reponse2.html_name }}" value="{{ form.reponse2.value }}" required>
                         </div>
-                        
+
                         <!-- Réponse 3 -->
                         <div class="answer-group mb-3 p-3 border rounded">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <label class="form-label fw-bold">Réponse 3</label>
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input correct-answer" 
-                                           type="checkbox" 
-                                           id="{{ form.reponse3_is_correct.id_for_label }}" 
-                                           name="{{ form.reponse3_is_correct.html_name }}"
-                                           {% if form.reponse3_is_correct.value %}checked{% endif %}>
-                                    <label class="form-check-label" for="{{ form.reponse3_is_correct.id_for_label }}">Correcte</label>
+                                    <input class="form-check-input correct-answer" type="checkbox"
+                                        id="{{ form.reponse3_is_correct.id_for_label }}"
+                                        name="{{ form.reponse3_is_correct.html_name }}" {% if
+                                        form.reponse3_is_correct.value %}checked{% endif %}>
+                                    <label class="form-check-label"
+                                        for="{{ form.reponse3_is_correct.id_for_label }}">Correcte</label>
                                 </div>
                             </div>
-                            <input type="text" 
-                                   class="form-control" 
-                                   id="{{ form.reponse3.id_for_label }}" 
-                                   name="{{ form.reponse3.html_name }}" 
-                                   value="{{ form.reponse3.value }}"
-                                   required>
+                            <input type="text" class="form-control" id="{{ form.reponse3.id_for_label }}"
+                                name="{{ form.reponse3.html_name }}" value="{{ form.reponse3.value }}" required>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="d-flex justify-content-between mt-4">
                     <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
                         <i class="bi bi-x-circle"></i> Annuler
@@ -124,10 +108,12 @@
         transition: all 0.3s ease;
         background-color: rgba(248, 249, 250, 0.5);
     }
+
     .answer-group:hover {
         background-color: rgba(13, 110, 253, 0.05);
         border-color: rgba(13, 110, 253, 0.3) !important;
     }
+
     .form-check-input:checked {
         background-color: #198754;
         border-color: #198754;
@@ -135,58 +121,58 @@
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Gestion des réponses correctes uniques
-    const correctAnswers = document.querySelectorAll('.correct-answer');
-    
-    correctAnswers.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            if (this.checked) {
-                // Décoche toutes les autres réponses
-                correctAnswers.forEach(other => {
-                    if (other !== this) other.checked = false;
-                });
-            } else {
-                // Empêche de décocher s'il s'agit de la seule réponse correcte
-                const checkedCount = Array.from(correctAnswers).filter(cb => cb.checked).length;
-                if (checkedCount === 0) {
-                    this.checked = true;
-                    // Petit feedback visuel
-                    const parent = this.closest('.form-switch');
-                    parent.classList.add('text-danger');
-                    setTimeout(() => parent.classList.remove('text-danger'), 1000);
+    document.addEventListener('DOMContentLoaded', function () {
+        // Gestion des réponses correctes uniques
+        const correctAnswers = document.querySelectorAll('.correct-answer');
+
+        correctAnswers.forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                if (this.checked) {
+                    // Décoche toutes les autres réponses
+                    correctAnswers.forEach(other => {
+                        if (other !== this) other.checked = false;
+                    });
+                } else {
+                    // Empêche de décocher s'il s'agit de la seule réponse correcte
+                    const checkedCount = Array.from(correctAnswers).filter(cb => cb.checked).length;
+                    if (checkedCount === 0) {
+                        this.checked = true;
+                        // Petit feedback visuel
+                        const parent = this.closest('.form-switch');
+                        parent.classList.add('text-danger');
+                        setTimeout(() => parent.classList.remove('text-danger'), 1000);
+                    }
                 }
+            });
+        });
+
+        // Validation du formulaire
+        const form = document.getElementById('editQuestionForm');
+        form.addEventListener('submit', function (e) {
+            // Vérifie qu'au moins une réponse est correcte
+            const hasCorrectAnswer = Array.from(correctAnswers).some(cb => cb.checked);
+
+            if (!hasCorrectAnswer) {
+                e.preventDefault();
+                alert('Vous devez sélectionner une réponse correcte !');
+                return;
+            }
+
+            // Vérifie que toutes les réponses sont remplies
+            const answerInputs = document.querySelectorAll('input[id*="reponse"]');
+            const emptyAnswers = Array.from(answerInputs).filter(input => input.value.trim() === '');
+
+            if (emptyAnswers.length > 0) {
+                e.preventDefault();
+                emptyAnswers.forEach(input => {
+                    input.classList.add('is-invalid');
+                    input.addEventListener('input', function () {
+                        this.classList.remove('is-invalid');
+                    });
+                });
+                alert('Veuillez remplir toutes les réponses !');
             }
         });
     });
-
-    // Validation du formulaire
-    const form = document.getElementById('editQuestionForm');
-    form.addEventListener('submit', function(e) {
-        // Vérifie qu'au moins une réponse est correcte
-        const hasCorrectAnswer = Array.from(correctAnswers).some(cb => cb.checked);
-        
-        if (!hasCorrectAnswer) {
-            e.preventDefault();
-            alert('Vous devez sélectionner une réponse correcte !');
-            return;
-        }
-        
-        // Vérifie que toutes les réponses sont remplies
-        const answerInputs = document.querySelectorAll('input[id*="reponse"]');
-        const emptyAnswers = Array.from(answerInputs).filter(input => input.value.trim() === '');
-        
-        if (emptyAnswers.length > 0) {
-            e.preventDefault();
-            emptyAnswers.forEach(input => {
-                input.classList.add('is-invalid');
-                input.addEventListener('input', function() {
-                    this.classList.remove('is-invalid');
-                });
-            });
-            alert('Veuillez remplir toutes les réponses !');
-        }
-    });
-});
 </script>
 {% endblock %}

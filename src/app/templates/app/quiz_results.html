@@ -3,11 +3,31 @@
 {% block content %}
 <div class="container mt-5">
     <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header text-white">
             <h2>Résultats du Quiz</h2>
         </div>
         <div class="card-body">
-            <h3 class="text-center mb-4">Votre score : <strong>{{ score }}/{{ total }}</strong></h3>
+
+            <div class="d-flex justify-content-center align-items-center my-4">
+                <div class="position-relative" style="width: 200px; height: 200px;">
+                    <div class="progress-circle position-absolute top-0 start-0 w-100 h-100">
+                        <svg class="w-100 h-100" viewBox="0 0 36 36">
+                            <path class="circle-bg" d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e6e6e6" stroke-width="3">
+                            </path>
+                            <path class="circle" d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#4F4845" stroke-width="3"
+                                stroke-dasharray="{{percentage}}, 100" stroke-linecap="round"></path>
+                        </svg>
+                    </div>
+                    <div class="position-absolute top-50 start-50 translate-middle text-center">
+                        <h4 class="mb-0">{{score}} pts</h4>
+                        <small>/{{total}} pts</small>
+                    </div>
+                </div>
+            </div>
             
             {% for correction in corrections %}
             <div class="card mb-3">

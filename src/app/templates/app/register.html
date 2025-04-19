@@ -1,145 +1,277 @@
-{% extends 'base.html' %}
+<!-- Page de connexion -->
+
 {% load static %}
+<!DOCTYPE html>
+<html lang="fr">
 
-{% block content %}
-<section class="vh-100">
-    <div class="container py-5 h-100">
-        <div class="row d-flex justify-content-center align-items-center h-100">
-            <div class="col col-xl-10">
-                <div class="card login-card" style="border-radius: 0.5rem;">
-                    <div class="row g-0">
-                        <div class="col-md-6 col-lg-5 d-none d-md-block">
-                            <img src="{% static 'app/images/crab_login_image.png' %}" alt="register form"
-                                class="img-fluid" style="height:100%;border-radius: 1rem 0 0 1rem;" />
-                        </div>
-                        <div class="logs-col col-md-6 col-lg-7 d-flex align-items-center">
-                            <div class="card-body p-4 p-lg-5 text-black">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Crabe</title>
 
-                                <form method="post" autocomplete="off">
-                                    {% csrf_token %}
+    <!-- Importation des styles -->
 
-                                    <div class="d-flex align-items-center mb-3 pb-1">
-                                        <i class="bi bi-person-plus-fill me-3 fs-2" style="color: #ff6219;"></i>
-                                        <span class="h1 fw-bold mb-0 text-white">INSCRIPTION</span>
-                                    </div>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-                                    <h5 class="fw-normal mb-3 pb-3 text-white" style="letter-spacing: 1px;">Créez votre
-                                        compte</h5>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'app/css/styles.css' %}">
 
-                                    {% if form.non_field_errors %}
-                                    <div class="alert alert-danger">
-                                        {% for error in form.non_field_errors %}
-                                        <small>{{ error }}</small><br>
-                                        {% endfor %}
-                                    </div>
-                                    {% endif %}
 
-                                    <div class="form-outline mb-4 text-white">
-                                        <label class="form-label">Nom d'utilisateur</label>
-                                        {{ form.username }}
-                                        {% if form.username.errors %}
-                                        <div class="text-danger">
-                                            {% for error in form.username.errors %}
+</head>
+
+<body>
+
+    <section class="vh-100">
+        <div class="container py-5 h-100">
+            <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col col-xl-10">
+                    <div class="card card-effect login-card" style="border-radius: 0.5rem;">
+                        <div class="row g-0">
+                            <div class="col-md-6 col-lg-5 d-none d-md-block"
+                                style="background: #fff4ce;align-content: center;">
+                                <img src="{% static 'app/images/crab_login_image.png' %}" alt="register form"
+                                    class="img-fluid" style="width:100%;border-radius: 1rem 0 0 1rem;" />
+                            </div>
+                            <div class="logs-col col-md-6 col-lg-7 d-flex align-items-center">
+                                <div class="card-body p-4 p-lg-5 text-black">
+
+                                    <form method="post" autocomplete="off">
+                                        {% csrf_token %}
+
+                                        <div class="d-flex align-items-center mb-3 pb-1">
+                                            <i class="bi bi-person-plus-fill me-3 fs-2" style="color: #ff6219;"></i>
+                                            <span class="h1 fw-bold mb-0 text-white">INSCRIPTION</span>
+                                        </div>
+
+                                        <h5 class="fw-normal mb-3 pb-3 text-white" style="letter-spacing: 1px;">Créez
+                                            votre
+                                            compte</h5>
+
+                                        {% if form.non_field_errors %}
+                                        <div class="alert alert-danger">
+                                            {% for error in form.non_field_errors %}
                                             <small>{{ error }}</small><br>
                                             {% endfor %}
                                         </div>
                                         {% endif %}
-                                    </div>
 
-                                    <div class="form-outline mb-4 text-white">
-                                        <label class="form-label">Email (facultatif)</label>
-                                        {{ form.email }}
-                                        {% if form.email.errors %}
-                                        <div class="text-danger">
-                                            {% for error in form.email.errors %}
-                                            <small>{{ error }}</small><br>
-                                            {% endfor %}
-                                        </div>
-                                        {% endif %}
-                                    </div>
-
-                                    <div class="d-flex gap-2">
                                         <div class="form-outline mb-4 text-white">
-                                            <label class="form-label">Nom (facultatif)</label>
-                                            {{ form.last_name }}
-                                            {% if form.last_name.errors %}
+                                            <label class="form-label">Nom d'utilisateur</label>
+                                            {{ form.username }}
+                                            {% if form.username.errors %}
                                             <div class="text-danger">
-                                                {% for error in form.last_name.errors %}
+                                                {% for error in form.username.errors %}
                                                 <small>{{ error }}</small><br>
                                                 {% endfor %}
                                             </div>
                                             {% endif %}
                                         </div>
+
                                         <div class="form-outline mb-4 text-white">
-                                            <label class="form-label">Prénom (facultatif)</label>
-                                            {{ form.first_name }}
-                                            {% if form.first_name.errors %}
+                                            <label class="form-label">Email (facultatif)</label>
+                                            {{ form.email }}
+                                            {% if form.email.errors %}
                                             <div class="text-danger">
-                                                {% for error in form.first_name.errors %}
+                                                {% for error in form.email.errors %}
                                                 <small>{{ error }}</small><br>
                                                 {% endfor %}
                                             </div>
                                             {% endif %}
                                         </div>
-                                    </div>
 
-                                    <div class="form-outline mb-4 text-white">
-                                        <label class="form-label">Mot de passe</label>
-                                        {{ form.password1 }}
-                                        {% if form.password1.errors %}
-                                        <div class="text-danger">
-                                            {% for error in form.password1.errors %}
+                                        <div class="d-flex gap-2">
+                                            <div class="form-outline mb-4 text-white">
+                                                <label class="form-label">Nom (facultatif)</label>
+                                                {{ form.last_name }}
+                                                {% if form.last_name.errors %}
+                                                <div class="text-danger">
+                                                    {% for error in form.last_name.errors %}
+                                                    <small>{{ error }}</small><br>
+                                                    {% endfor %}
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="form-outline mb-4 text-white">
+                                                <label class="form-label">Prénom (facultatif)</label>
+                                                {{ form.first_name }}
+                                                {% if form.first_name.errors %}
+                                                <div class="text-danger">
+                                                    {% for error in form.first_name.errors %}
+                                                    <small>{{ error }}</small><br>
+                                                    {% endfor %}
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="form-outline mb-4 text-white">
+                                            <label class="form-label">Mot de passe</label>
+                                            {{ form.password1 }}
+                                            {% if form.password1.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.password1.errors %}
+                                                <small>{{ error }}</small><br>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="form-outline mb-4 text-white">
+                                            <label class="form-label">Confirmation du mot de passe</label>
+                                            {{ form.password2 }}
+                                            {% if form.password2.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.password2.errors %}
+                                                <small>{{ error }}</small><br>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <!-- reCAPTCHA v2 -->
+                                        <div class="g-recaptcha mb-4" data-sitekey="{{ RECAPTCHA_PUBLIC_KEY }}"></div>
+                                        {% if form.captcha.errors %}
+                                        <div class="alert alert-danger">
+                                            {% for error in form.captcha.errors %}
                                             <small>{{ error }}</small><br>
                                             {% endfor %}
                                         </div>
                                         {% endif %}
-                                    </div>
 
-                                    <div class="form-outline mb-4 text-white">
-                                        <label class="form-label">Confirmation du mot de passe</label>
-                                        {{ form.password2 }}
-                                        {% if form.password2.errors %}
-                                        <div class="text-danger">
-                                            {% for error in form.password2.errors %}
-                                            <small>{{ error }}</small><br>
-                                            {% endfor %}
+                                        <div class="pt-1 mb-4">
+                                            <button class="btn btn-dark btn-lg btn-block fw-bold border-0 px-5"
+                                                style="background: #E95538;" type="submit">S'inscrire</button>
                                         </div>
-                                        {% endif %}
-                                    </div>
 
-                                    <!-- reCAPTCHA v2 -->
-                                    <div class="g-recaptcha mb-4" data-sitekey="{{ RECAPTCHA_PUBLIC_KEY }}"></div>
-                                    {% if form.captcha.errors %}
-                                    <div class="alert alert-danger">
-                                        {% for error in form.captcha.errors %}
-                                        <small>{{ error }}</small><br>
-                                        {% endfor %}
-                                    </div>
-                                    {% endif %}
+                                        <p class="mb-5 pb-lg-2 text-white">Déjà un compte ?
+                                            <a href="{% url 'login' %}" style="color: #8d93d3;">Connectez-vous ici</a>
+                                        </p>
+                                        <a href="{% url 'terms' %}" class="small text-white">Conditions
+                                            d'utilisation</a><br>
+                                        <a href="{% url 'privacy' %}" class="small text-white">Politique de
+                                            confidentialité</a>
+                                    </form>
 
-                                    <div class="pt-1 mb-4">
-                                        <button class="btn btn-dark btn-lg btn-block fw-bold border-0 px-5"
-                                            style="background: #E95538;" type="submit">S'inscrire</button>
-                                    </div>
-
-                                    <p class="mb-5 pb-lg-2 text-white">Déjà un compte ?
-                                        <a href="{% url 'login' %}" style="color: #8d93d3;">Connectez-vous ici</a>
-                                    </p>
-                                    <a href="{% url 'terms' %}" class="small text-white">Conditions
-                                        d'utilisation</a><br>
-                                    <a href="{% url 'privacy' %}" class="small text-white">Politique de
-                                        confidentialité</a>
-                                </form>
-
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- Chargement de l'API reCAPTCHA -->
-<script src="https://www.google.com/recaptcha/api.js"></script>
-{% endblock %}
+    <!-- Chargement de l'API reCAPTCHA -->
+    <script src="https://www.google.com/recaptcha/api.js"></script>
+
+</body>
+
+<!-- Cookie Consent Modal -->
+<div class="modal fade" id="cookieConsentModal" tabindex="-1" aria-labelledby="cookieConsentLabel" aria-hidden="true"
+    data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="cookieConsentLabel">
+                    <i class="bi bi-cookie me-2"></i>Gestion des cookies
+                </h5>
+            </div>
+            <div class="modal-body">
+                <p>Nous utilisons des cookies essentiels pour le bon fonctionnement du site. En acceptant, vous
+                    consentez à
+                    l'utilisation de ces cookies.</p>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="analyticsCookies" checked disabled>
+                    <label class="form-check-label" for="analyticsCookies">
+                        Cookies essentiels (obligatoires)
+                    </label>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="marketingCookies">
+                    <label class="form-check-label" for="marketingCookies">
+                        Cookies analytiques (optionnels)
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="rejectCookies">
+                    <i class="bi bi-x-circle me-2"></i>Refuser
+                </button>
+                <button type="button" class="btn btn-success" id="acceptCookies">
+                    <i class="bi bi-check-circle me-2"></i>Accepter
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Vérifie si le consentement a déjà été donné
+        if (!localStorage.getItem('cookieConsent')) {
+            const cookieModal = new bootstrap.Modal(document.getElementById('cookieConsentModal'));
+            cookieModal.show();
+
+            // Gestion du refus
+            document.getElementById('rejectCookies').addEventListener('click', function () {
+                localStorage.setItem('cookieConsent', 'rejected');
+                cookieModal.hide();
+                // Redirige vers une page d'explication ou ferme le site
+                window.location.href = "{% url 'privacy' %}";
+            });
+
+            // Gestion de l'acceptation
+            document.getElementById('acceptCookies').addEventListener('click', function () {
+                localStorage.setItem('cookieConsent', 'accepted');
+                const analyticsAccepted = document.getElementById('analyticsCookies').checked;
+                const marketingAccepted = document.getElementById('marketingCookies').checked;
+
+                localStorage.setItem('analyticsCookies', analyticsAccepted);
+                localStorage.setItem('marketingCookies', marketingAccepted);
+
+                cookieModal.hide();
+            });
+        }
+
+        // Initialisation des cookies selon les préférences
+        if (localStorage.getItem('cookieConsent') === 'accepted') {
+            if (localStorage.getItem('analyticsCookies') === 'true') {
+                // Initialise Google Analytics par exemple
+                console.log('Analytics cookies enabled');
+            }
+            if (localStorage.getItem('marketingCookies') === 'true') {
+                // Initialise les cookies marketing
+                console.log('Marketing cookies enabled');
+            }
+        }
+    });
+</script>
+
+
+<!-- Importation des scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+    integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+    crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
+    integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
+    crossorigin="anonymous"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/ldrs/dist/auto/helix.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Custom JS -->
+<script type="module" src="{% static 'app/js/main.js' %}"></script>
+
+<!-- Script pour passer les messages Django au JavaScript -->
+<script id="django-messages" type="application/json">
+    [
+        {% for message in messages %}
+        {
+            "message": "{{ message }}",
+            "tags": "{{ message.tags }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ]
+</script>
