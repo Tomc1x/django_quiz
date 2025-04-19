@@ -296,7 +296,6 @@ body {
 /* Tableau responsive */
 .table-responsive {
     border-radius: 0.35rem;
-    overflow: hidden;
 }
 
 .table thead th {
