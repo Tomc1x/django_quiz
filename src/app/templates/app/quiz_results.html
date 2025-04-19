@@ -2,32 +2,100 @@
 
 {% block content %}
 <div class="container mt-5">
+
+    <div class="d-flex gap-3 my-5">
+
+        <div class="card" style="width: 310px;">
+            <div class="card-header d-flex gap-2">
+                <i class="bi bi-person-circle"></i>
+                Mon score
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-center align-items-center mt-4">
+                    <div class="position-relative" style="width: 200px; height: 200px;">
+                        <div class="progress-circle position-absolute top-0 start-0 w-100 h-100">
+                            <svg class="w-100 h-100" viewBox="0 0 36 36">
+                                <path class="circle-bg" d="M18 2.0845
+                                    a 15.9155 15.9155 0 0 1 0 31.831
+                                    a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e6e6e6" stroke-width="3">
+                                </path>
+                                <path class="circle" d="M18 2.0845
+                                    a 15.9155 15.9155 0 0 1 0 31.831
+                                    a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#4F4845" stroke-width="3"
+                                    stroke-dasharray="{{percentage}}, 100" stroke-linecap="round"></path>
+                            </svg>
+                        </div>
+                        <div class="position-absolute top-50 start-50 translate-middle text-center">
+                            <h4 class="mb-0">{{score}} pts</h4>
+                            <small>/{{total}} pts</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-trophy"></i>
+                Top 3
+            </div>
+            <div class="card-body">
+
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="50px">#</th>
+                            <th>Utilisateur</th>
+                            <th class="text-center">Score Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in leaderboard %}
+                        <tr class="{% if user.id == request.user.id %}table-primary{% endif %}">
+                            <td class="fw-bold">{{ forloop.counter }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar me-3">
+                                        <span class="avatar-initial  rounded-circle">
+                                            {{ user.username|first|upper }}</span>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">{{ user.username }}</div>
+                                        <div class="text-muted small">{{ user.date_joined|date:"d/m/Y" }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                {{ user.total_points }} pts
+
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+
+        <div class="card" style="width: 310px; font-size: 44rem;">
+            <div class="card-header">
+                Niveau
+            </div>
+            <div  class="card-body d-flex align-items-center justify-content-center">
+                
+                <h1 style="font-size: 9rem;"><span style="font-size: 4rem;">x</span>{{level}}</h1>
+            </div>
+        </div>
+    </div>
+
     <div class="card mb-4">
         <div class="card-header text-white">
             <h2>Résultats du Quiz</h2>
         </div>
         <div class="card-body">
 
-            <div class="d-flex justify-content-center align-items-center my-4">
-                <div class="position-relative" style="width: 200px; height: 200px;">
-                    <div class="progress-circle position-absolute top-0 start-0 w-100 h-100">
-                        <svg class="w-100 h-100" viewBox="0 0 36 36">
-                            <path class="circle-bg" d="M18 2.0845
-                                a 15.9155 15.9155 0 0 1 0 31.831
-                                a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e6e6e6" stroke-width="3">
-                            </path>
-                            <path class="circle" d="M18 2.0845
-                                a 15.9155 15.9155 0 0 1 0 31.831
-                                a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#4F4845" stroke-width="3"
-                                stroke-dasharray="{{percentage}}, 100" stroke-linecap="round"></path>
-                        </svg>
-                    </div>
-                    <div class="position-absolute top-50 start-50 translate-middle text-center">
-                        <h4 class="mb-0">{{score}} pts</h4>
-                        <small>/{{total}} pts</small>
-                    </div>
-                </div>
-            </div>
             
             {% for correction in corrections %}
             <div class="card mb-3">

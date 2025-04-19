@@ -161,45 +161,23 @@ def stats(request):
 
     for quiz in quizzes:
         quiz_results = user_results.filter(quiz=quiz)
-        if not quiz_results.exists():
-            continue
 
         total_questions = quiz.questions.count()
-        scores = [
-            round((result.score / total_questions) * 100)
-            for result in quiz_results
-        ]
-
-        avg_score = sum(scores) / len(scores)
-        max_score = max(scores)
-        min_score = min(scores)
-        last_score = scores[-1]
-        first_score = scores[0] if len(scores) > 1 else last_score
-
-        progress = ((last_score - first_score) /
-                    first_score) * 100 if first_score != 0 else 0
+        total_correct_answers = sum(result.score for result in quiz_results)
+        calculated_points = quiz.level * total_correct_answers
+        has_been_attempted = quiz_results.exists()
+        if has_been_attempted:
+            print("attempted")
+        else:
+            print("not attempted")
 
         quiz_stats.append({
-            'quiz':
-            quiz,
-            'attempts':
-            len(scores),
-            'best_score':
-            max_score,
-            'max_score':
-            max_score,
-            'min_score':
-            min_score,
-            'last_score':
-            last_score,
-            'progress':
-            round(progress, 1),
-            'completion_time_avg':
-            round(
-                quiz_results.aggregate(
-                    Avg('completion_time'))['completion_time__avg'], 1),
-            'results':
-            quiz_results
+            'quiz': quiz,
+            'level': quiz.level,
+            'total_questions': total_questions,
+            'total_correct_answers': total_correct_answers,
+            'calculated_points': calculated_points,
+            'has_been_attempted': has_been_attempted
         })
 
     # Données pour le graphique d'évolution
@@ -257,6 +235,15 @@ def stats(request):
     total_score = sum(result.score * result.quiz.level
                       for result in user_results)
 
+    # Calcul de tous les points pour connaitre le maximum de points possible
+    max_points = Quiz.objects.annotate(
+        total_points=F('level') * Count('questions')).aggregate(
+            Sum('total_points'))['total_points__sum'] or 0
+
+    # Calculer le pourcentage de réussite
+    percentage = round(total_score * 100 /
+                       max_points, 1) if max_points > 0 else 0
+
     context = {
         'quiz_stats': quiz_stats,
         'evolution_data': evolution_data,
@@ -266,6 +253,8 @@ def stats(request):
         'average_score': user_avg_score,  # Pour ranking_stats.html
         'top_percent': top_percent,
         'total_users': total_users,
+        'max_points': max_points,  # Ajouter le score maximum au contexte
+        'percentage': percentage,  # Ajouter le pourcentage au contexte
     }
 
     return render(request, 'app/stats.html', context)
@@ -575,6 +564,25 @@ def quiz_list(request):
     # Convertir en liste de tuples pour le template
     quizzes_by_theme = sorted(quizzes_by_theme.items(), key=lambda x: x[0])
 
+    # Classement des joueurs en calculant leurs points.
+    leaderboard_data = UserQuizResult.objects.values(
+        'user__id', 'user__username', 'user__date_joined').annotate(
+            total_points=Sum(F('score') * F('quiz__level')),
+            avg_score=Avg('score'),
+            total_quizzes=Count('id')).order_by('-total_points')
+
+    leaderboard = []
+    for rank, entry in enumerate(leaderboard_data, start=1):
+        leaderboard.append({
+            'id': entry['user__id'],
+            'username': entry['user__username'],
+            'date_joined': entry['user__date_joined'],
+            'avg_score': round(entry['avg_score'], 1),
+            'total_quizzes': entry['total_quizzes'],
+            'total_points': entry['total_points'],
+            'rank': rank
+        })
+
     context = {
         'quizzes_by_theme': quizzes_by_theme,
         'quizzes': remaining_quizzes,
@@ -583,6 +591,7 @@ def quiz_list(request):
         'percentage': percentage,
         'completed_quizzes_data':
         completed_quizzes,  # Renommé pour éviter la confusion
+        'leaderboard': leaderboard[:3],  # Limiter à top 3
     }
     return render(request, 'app/quiz_list.html', context)
 
@@ -591,12 +600,34 @@ def quiz_list(request):
 def take_quiz(request, quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
 
-    # Vérifier si l'utilisateur a déjà complété ce quiz
-    if UserQuizResult.objects.filter(user=request.user, quiz=quiz).exists():
-        messages.warning(
-            request,
-            "Vous avez déjà complété ce quiz. Les points ne seront pas comptabilisés."
-        )
+    total = quiz.questions.count()
+    # Récupérer le score enregistré pour l'utilisateur et le quiz
+    user_result = UserQuizResult.objects.filter(user=request.user,
+                                                quiz=quiz).first()
+    saved_score = user_result.score if user_result else None
+
+    if saved_score:
+        # Calculer le pourcentage de réussite
+        percentage = round(saved_score * 100 / total, 1) if total > 0 else 0
+
+    # Classement des joueurs pour le quiz actuel
+    leaderboard_data = UserQuizResult.objects.filter(quiz=quiz).values(
+        'user__id', 'user__username', 'user__date_joined').annotate(
+            total_points=Sum(F('score') * F('quiz__level')),
+            avg_score=Avg('score'),
+            total_quizzes=Count('id')).order_by('-total_points')
+
+    leaderboard = []
+    for rank, entry in enumerate(leaderboard_data, start=1):
+        leaderboard.append({
+            'id': entry['user__id'],
+            'username': entry['user__username'],
+            'date_joined': entry['user__date_joined'],
+            'avg_score': round(entry['avg_score'], 1),
+            'total_quizzes': entry['total_quizzes'],
+            'total_points': entry['total_points'],
+            'rank': rank
+        })
 
     if request.method == 'POST':
         start_time = datetime.now()  # À enregistrer au début du quiz
@@ -641,22 +672,46 @@ def take_quiz(request, quiz_id):
                                           quiz=quiz,
                                           score=score,
                                           completion_time=completion_time)
-        total = quiz.questions.count()
 
         # Calculer le pourcentage de réussite
         percentage = round(score * 100 / total, 1) if total > 0 else 0
 
         return render(
-            request, 'app/quiz_results.html', {
+            request,
+            'app/quiz_results.html',
+            {
                 'quiz': quiz,
                 'score': score,
                 'total': total,
                 'percentage': percentage,
                 'corrections': corrections,
-                'completion_time': int(completion_time)
+                'completion_time': int(completion_time),
+                'leaderboard': leaderboard[:3],  # Limiter à top 3
+                'level': quiz.level,
             })
 
-    return render(request, 'app/take_quiz.html', {'quiz': quiz})
+    # Vérifier si l'utilisateur a déjà complété ce quiz
+    if UserQuizResult.objects.filter(user=request.user, quiz=quiz).exists():
+        messages.warning(
+            request,
+            "Vous avez déjà complété ce quiz. Les points ne seront pas comptabilisés."
+        )
+
+        return render(
+            request,
+            'app/take_quiz.html',
+            {
+                'quiz': quiz,
+                'score': saved_score,
+                'total': total,
+                'percentage': percentage,
+                'leaderboard': leaderboard[:3],  # Limiter à top 3
+                'level': quiz.level,
+            })
+
+    return render(request, 'app/take_quiz.html', {
+        'quiz': quiz,
+    })
 
 
 def my_results(request):
