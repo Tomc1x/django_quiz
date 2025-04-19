@@ -673,6 +673,25 @@ def take_quiz(request, quiz_id):
                                           score=score,
                                           completion_time=completion_time)
 
+    # Classement des joueurs pour le quiz actuel
+        leaderboard_data = UserQuizResult.objects.filter(quiz=quiz).values(
+            'user__id', 'user__username', 'user__date_joined').annotate(
+                total_points=Sum(F('score') * F('quiz__level')),
+                avg_score=Avg('score'),
+                total_quizzes=Count('id')).order_by('-total_points')
+
+        leaderboard = []
+        for rank, entry in enumerate(leaderboard_data, start=1):
+            leaderboard.append({
+                'id': entry['user__id'],
+                'username': entry['user__username'],
+                'date_joined': entry['user__date_joined'],
+                'avg_score': round(entry['avg_score'], 1),
+                'total_quizzes': entry['total_quizzes'],
+                'total_points': entry['total_points'],
+                'rank': rank
+            })
+
         # Calculer le pourcentage de réussite
         percentage = round(score * 100 / total, 1) if total > 0 else 0
 
