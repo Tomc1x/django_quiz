@@ -139,10 +139,16 @@ RECAPTCHA_PRIVATE_KEY = '6LesPgArAAAAALbPN7vwNunGpccCcxn3mqynYLKN'
 
 # Email configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'votre.smtp.server.com'
+EMAIL_HOST = 'smtp-sio-origin.alwaysdata.net'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'votre@email.com'
-EMAIL_HOST_PASSWORD = 'votremotdepasse'
-DEFAULT_FROM_EMAIL = 'contact@votresite.com'
-CONTACT_EMAIL = 'contact@votresite.com'
+EMAIL_HOST_USER = 'sio-origin@alwaysdata.net'
+EMAIL_HOST_PASSWORD = 'qahman-gamka0-ryxsOD'
+DEFAULT_FROM_EMAIL = 'sio-origin@alwaysdata.net'
+CONTACT_EMAIL = 'sio-origin@alwaysdata.net'
+
+# Password reset timeout in seconds (2 jours)
+PASSWORD_RESET_TIMEOUT = 172800
+
+# Site information
+SITE_NAME = "Quiz App"

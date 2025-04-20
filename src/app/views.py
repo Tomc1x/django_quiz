@@ -23,6 +23,7 @@ from django.views.generic import TemplateView
 from .forms import LoginForm, QuestionForm, QuizForm, RegisterForm
 from .imgur_uploader import ImgurUploader
 from .models import Question, Quiz, UserQuizResult
+from django.contrib.auth import update_session_auth_hash
 
 
 def login_view(request):
@@ -151,71 +152,32 @@ def delete_user(request, user_id):
 
 @login_required
 def stats(request):
-    # Gestion de la période
-    days = int(request.GET.get('days', 30))
-    start_date = timezone.now() - timedelta(days=days)
-    end_date = timezone.now()
-
-    # Si période personnalisée
-    if 'start_date' in request.GET and 'end_date' in request.GET:
-        try:
-            start_date = datetime.strptime(request.GET['start_date'],
-                                           '%Y-%m-%d')
-            end_date = datetime.strptime(request.GET['end_date'], '%Y-%m-%d')
-            days = (end_date - start_date).days
-        except (ValueError, TypeError):
-            pass
-
     # Récupération des résultats de l'utilisateur
     user_results = UserQuizResult.objects.filter(
-        user=request.user,
-        completed_at__gte=start_date,
-        completed_at__lte=end_date).order_by('completed_at')
+        user=request.user).order_by('completed_at')
 
     quiz_stats = []
     quizzes = Quiz.objects.filter(questions__isnull=False).distinct()
 
     for quiz in quizzes:
         quiz_results = user_results.filter(quiz=quiz)
-        if not quiz_results.exists():
-            continue
 
         total_questions = quiz.questions.count()
-        scores = [
-            round((result.score / total_questions) * 100)
-            for result in quiz_results
-        ]
-
-        avg_score = sum(scores) / len(scores)
-        max_score = max(scores)
-        min_score = min(scores)
-        last_score = scores[-1]
-        first_score = scores[0] if len(scores) > 1 else last_score
-
-        progress = ((last_score - first_score) /
-                    first_score) * 100 if first_score != 0 else 0
+        total_correct_answers = sum(result.score for result in quiz_results)
+        calculated_points = quiz.level * total_correct_answers
+        has_been_attempted = quiz_results.exists()
+        if has_been_attempted:
+            print("attempted")
+        else:
+            print("not attempted")
 
         quiz_stats.append({
-            'quiz':
-            quiz,
-            'attempts':
-            len(scores),
-            'best_score':
-            max_score,
-            'max_score':
-            max_score,
-            'min_score':
-            min_score,
-            'last_score':
-            last_score,
-            'progress':
-            round(progress, 1),
-            'completion_time_avg':
-            round(
-                quiz_results.aggregate(
-                    Avg('completion_time'))['completion_time__avg'], 1),
-            'results':
-            quiz_results
+            'quiz': quiz,
+            'level': quiz.level,
+            'total_questions': total_questions,
+            'total_correct_answers': total_correct_answers,
+            'calculated_points': calculated_points,
+            'has_been_attempted': has_been_attempted
         })
 
     # Données pour le graphique d'évolution
@@ -236,6 +198,13 @@ def stats(request):
             avg_score=Avg('score'),
             total_quizzes=Count('id')).order_by('-avg_score')
 
+    # Calcul des scores totaux en multipliant le score par le niveau des quiz
+    leaderboard_data = UserQuizResult.objects.values(
+        'user__id', 'user__username', 'user__date_joined').annotate(
+            total_points=Sum(F('score') * F('quiz__level')),
+            avg_score=Avg('score'),
+            total_quizzes=Count('id')).order_by('-total_points')
+
     # 2. Calcul de la position de l'utilisateur
     user_rank = None
     leaderboard = []
@@ -246,6 +215,7 @@ def stats(request):
             'date_joined': entry['user__date_joined'],
             'avg_score': round(entry['avg_score'], 1),
             'total_quizzes': entry['total_quizzes'],
+            'total_points': entry['total_points'],  # Ajout du score total
             'progress': 0  # À calculer si vous avez des données historiques
         })
         if entry['user__username'] == request.user.username:
@@ -261,32 +231,105 @@ def stats(request):
         avg_score=Avg('score'))['avg_score'] or 0
     user_avg_score = round(user_avg_score, 1)
 
+    # 5. Score total des points
+    total_score = sum(result.score * result.quiz.level
+                      for result in user_results)
+
+    # Calcul de tous les points pour connaitre le maximum de points possible
+    max_points = Quiz.objects.annotate(
+        total_points=F('level') * Count('questions')).aggregate(
+            Sum('total_points'))['total_points__sum'] or 0
+
+    # Calculer le pourcentage de réussite
+    percentage = round(total_score * 100 /
+                       max_points, 1) if max_points > 0 else 0
+
     context = {
-        'quiz_stats':
-        quiz_stats,
-        'evolution_data':
-        evolution_data,
-        'leaderboard':
-        leaderboard[:50],  # Limiter à top 50
-        'user_rank':
-        user_rank,
-        'average_score':
-        user_avg_score,  # Pour ranking_stats.html
-        'top_percent':
-        top_percent,
-        'total_users':
-        total_users,
-        'selected_days':
-        days,
-        'start_date':
-        start_date.strftime('%Y-%m-%d')
-        if 'start_date' not in request.GET else request.GET['start_date'],
-        'end_date':
-        end_date.strftime('%Y-%m-%d')
-        if 'end_date' not in request.GET else request.GET['end_date'],
+        'quiz_stats': quiz_stats,
+        'evolution_data': evolution_data,
+        'leaderboard': leaderboard[:50],  # Limiter à top 50
+        'total_score': total_score,  # Ajouter le score total au contexte
+        'user_rank': user_rank,
+        'average_score': user_avg_score,  # Pour ranking_stats.html
+        'top_percent': top_percent,
+        'total_users': total_users,
+        'max_points': max_points,  # Ajouter le score maximum au contexte
+        'percentage': percentage,  # Ajouter le pourcentage au contexte
     }
 
     return render(request, 'app/stats.html', context)
+
+
+from django.db.models import Sum, Count, F, Window, FloatField
+from django.db.models.functions import DenseRank
+from django.contrib.auth import get_user_model
+from .models import UserQuizResult, Quiz
+
+User = get_user_model()
+
+
+class RankingSystem:
+
+    @classmethod
+    def get_global_ranking(cls, limit=100):
+        """Classement général basé sur les points cumulés"""
+        return User.objects.annotate(
+            total_points=Sum('userquizresult__calculated_points'),
+            total_quizzes=Count('userquizresult'),
+            avg_score=Sum('userquizresult__score') * 1.0 /
+            Sum('userquizresult__quiz__questions__count'),
+            rank=Window(expression=DenseRank(),
+                        order_by=F('total_points').desc())).filter(
+                            total_points__isnull=False).order_by(
+                                '-total_points')[:limit]
+
+    @classmethod
+    def get_quiz_ranking(cls, quiz_id, limit=50):
+        """Classement spécifique à un quiz"""
+        return UserQuizResult.objects.filter(quiz_id=quiz_id).annotate(
+            rank=Window(expression=DenseRank(),
+                        order_by=F(
+                            'calculated_points').desc())).select_related(
+                                'user',
+                                'quiz').order_by('-calculated_points')[:limit]
+
+    @classmethod
+    def get_user_rank(cls, user):
+        """Position de l'utilisateur dans le classement général"""
+        rank = User.objects.annotate(
+            total_points=Sum('userquizresult__calculated_points')).filter(
+                total_points__gt=User.objects.filter(pk=user.pk).annotate(
+                    user_points=Sum('userquizresult__calculated_points')).
+                values('user_points')[0]['user_points']).count() + 1
+
+        total_users = User.objects.annotate(
+            total_points=Sum('userquizresult__calculated_points')).filter(
+                total_points__isnull=False).count()
+
+        return {
+            'rank':
+            rank,
+            'top_percent':
+            round((rank / total_users) * 100, 1) if total_users > 0 else 0,
+            'total_users':
+            total_users
+        }
+
+    @classmethod
+    def get_user_stats(cls, user):
+        """Statistiques détaillées de l'utilisateur"""
+        stats = UserQuizResult.objects.filter(user=user).aggregate(
+            total_points=Sum('calculated_points'),
+            total_quizzes=Count('id'),
+            total_questions=Sum('quiz__questions__count'),
+            total_correct=Sum('score'),
+            avg_time=Avg('completion_time'))
+
+        stats['accuracy'] = round(
+            (stats['total_correct'] / stats['total_questions'] *
+             100), 1) if stats['total_questions'] else 0
+
+        return stats
 
 
 def custom_logout(request):
@@ -307,24 +350,35 @@ def privacy_view(request):
 
 # Administration
 @login_required
-@user_passes_test(
-    lambda u: u.is_staff)  # Seuls les administrateurs peuvent accéder
+@user_passes_test(lambda u: u.is_staff)
 def admin_quiz_detail(request, quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
-    questions = quiz.questions.all()  # Récupère toutes les questions du quiz
+    questions = quiz.questions.all()
+
     if request.method == 'POST':
         if 'delete_quiz' in request.POST:
-            print('delete_quiz')
             quiz.delete()
             messages.success(request, 'Le quiz a été supprimé avec succès.')
             return redirect('custom_admin')
+        elif 'update_quiz' in request.POST:
+            form = QuizForm(request.POST, instance=quiz)
+            if form.is_valid():
+                form.save()
+                messages.success(request,
+                                 'Le quiz a été mis à jour avec succès.')
+                return redirect('admin_quiz_detail', quiz_id=quiz.id)
+            else:
+                # Le formulaire invalide sera réaffiché avec les erreurs
+                pass
         elif 'go_back' in request.POST:
-            print('go back')
             return redirect('custom_admin')
+    else:
+        form = QuizForm(instance=quiz)
 
     return render(request, 'app/admin/quiz_detail.html', {
         'quiz': quiz,
-        'questions': questions
+        'questions': questions,
+        'form': form
     })
 
 
@@ -453,23 +507,127 @@ def add_quiz(request):
     })
 
 
+from collections import defaultdict
+
+
 @login_required
 def quiz_list(request):
-    quizzes = Quiz.objects.all()
-    
-    # Calculer le temps moyen par quiz
-    quizzes_with_avg_time = quizzes.annotate(
-        average_completion_time=Avg('userquizresult__completion_time')
-    )
-    
+    user = request.user
+
+    # Récupération des résultats de l'utilisateur
+    user_results = UserQuizResult.objects.filter(
+        user=request.user).order_by('completed_at')
+
+    # Calcul de tous les points pour connaitre le maximum de points possible
+    max_points = Quiz.objects.annotate(
+        total_points=F('level') * Count('questions')).aggregate(
+            Sum('total_points'))['total_points__sum'] or 0
+
+    # Récupérer tous les quiz triés par niveau
+    quizzes = Quiz.objects.all().order_by('level')
+
+    # Filtrer les quiz qui ont été réalisés par l'utilisateur
+    completed_quiz_ids = UserQuizResult.objects.filter(user=user).values_list(
+        'quiz_id', flat=True)
+
+    # Annoter chaque quiz complété avec le nombre de questions et le score de l'utilisateur
+    completed_quizzes = []
+    for quiz_id in completed_quiz_ids:
+        quiz = Quiz.objects.get(id=quiz_id)
+        result = UserQuizResult.objects.filter(user=user, quiz=quiz).latest(
+            'completed_at')  # Prend le résultat le plus récent
+        total_questions = quiz.questions.count()
+        percentage = round(result.score * 100 /
+                           total_questions, 1) if total_questions > 0 else 0
+        completed_quizzes.append({
+            'quiz': quiz,
+            'total_questions': total_questions,
+            'user_score': result.score,
+            'percentage': percentage,
+        })
+
+    # 5. Score total des points
+    total_score = sum(result.score * result.quiz.level
+                      for result in user_results)
+
+    # Calculer le pourcentage de réussite
+    percentage = round(total_score * 100 /
+                       max_points, 1) if max_points > 0 else 0
+
+    # Grouper les quiz non complétés par thème
+    remaining_quizzes = quizzes.exclude(id__in=completed_quiz_ids)
+    quizzes_by_theme = defaultdict(list)
+    for quiz in remaining_quizzes:
+        theme = quiz.theme if quiz.theme else "Autres"
+        quizzes_by_theme[theme].append(quiz)
+
+    # Convertir en liste de tuples pour le template
+    quizzes_by_theme = sorted(quizzes_by_theme.items(), key=lambda x: x[0])
+
+    # Classement des joueurs en calculant leurs points.
+    leaderboard_data = UserQuizResult.objects.values(
+        'user__id', 'user__username', 'user__date_joined').annotate(
+            total_points=Sum(F('score') * F('quiz__level')),
+            avg_score=Avg('score'),
+            total_quizzes=Count('id')).order_by('-total_points')
+
+    leaderboard = []
+    for rank, entry in enumerate(leaderboard_data, start=1):
+        leaderboard.append({
+            'id': entry['user__id'],
+            'username': entry['user__username'],
+            'date_joined': entry['user__date_joined'],
+            'avg_score': round(entry['avg_score'], 1),
+            'total_quizzes': entry['total_quizzes'],
+            'total_points': entry['total_points'],
+            'rank': rank
+        })
+
     context = {
-        'quizzes': quizzes_with_avg_time,
+        'quizzes_by_theme': quizzes_by_theme,
+        'quizzes': remaining_quizzes,
+        'total_score': total_score,
+        'max_points': max_points,
+        'percentage': percentage,
+        'completed_quizzes_data':
+        completed_quizzes,  # Renommé pour éviter la confusion
+        'leaderboard': leaderboard[:3],  # Limiter à top 3
     }
     return render(request, 'app/quiz_list.html', context)
+
 
 @login_required
 def take_quiz(request, quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
+
+    total = quiz.questions.count()
+    # Récupérer le score enregistré pour l'utilisateur et le quiz
+    user_result = UserQuizResult.objects.filter(user=request.user,
+                                                quiz=quiz).first()
+    saved_score = user_result.score if user_result else None
+
+    if saved_score:
+        # Calculer le pourcentage de réussite
+        percentage = round(saved_score * 100 / total, 1) if total > 0 else 0
+
+    # Classement des joueurs pour le quiz actuel
+    leaderboard_data = UserQuizResult.objects.filter(quiz=quiz).values(
+        'user__id', 'user__username', 'user__date_joined').annotate(
+            total_points=Sum(F('score') * F('quiz__level')),
+            avg_score=Avg('score'),
+            total_quizzes=Count('id')).order_by('-total_points')
+
+    leaderboard = []
+    for rank, entry in enumerate(leaderboard_data, start=1):
+        leaderboard.append({
+            'id': entry['user__id'],
+            'username': entry['user__username'],
+            'date_joined': entry['user__date_joined'],
+            'avg_score': round(entry['avg_score'], 1),
+            'total_quizzes': entry['total_quizzes'],
+            'total_points': entry['total_points'],
+            'rank': rank
+        })
 
     if request.method == 'POST':
         start_time = datetime.now()  # À enregistrer au début du quiz
@@ -507,22 +665,72 @@ def take_quiz(request, quiz_id):
         end_time = datetime.now()
         completion_time = (end_time - start_time).total_seconds()
 
-        # Enregistrement du résultat
-        UserQuizResult.objects.create(user=request.user,
-                                      quiz=quiz,
-                                      score=score,
-                                      completion_time=completion_time)
+        # Enregistrement du résultat uniquement si le quiz n'a pas été fait
+        if not UserQuizResult.objects.filter(user=request.user,
+                                             quiz=quiz).exists():
+            UserQuizResult.objects.create(user=request.user,
+                                          quiz=quiz,
+                                          score=score,
+                                          completion_time=completion_time)
 
-        return render(
-            request, 'app/quiz_results.html', {
-                'quiz': quiz,
-                'score': score,
-                'total': quiz.questions.count(),
-                'corrections': corrections,
-                'completion_time': int(completion_time)
+    # Classement des joueurs pour le quiz actuel
+        leaderboard_data = UserQuizResult.objects.filter(quiz=quiz).values(
+            'user__id', 'user__username', 'user__date_joined').annotate(
+                total_points=Sum(F('score') * F('quiz__level')),
+                avg_score=Avg('score'),
+                total_quizzes=Count('id')).order_by('-total_points')
+
+        leaderboard = []
+        for rank, entry in enumerate(leaderboard_data, start=1):
+            leaderboard.append({
+                'id': entry['user__id'],
+                'username': entry['user__username'],
+                'date_joined': entry['user__date_joined'],
+                'avg_score': round(entry['avg_score'], 1),
+                'total_quizzes': entry['total_quizzes'],
+                'total_points': entry['total_points'],
+                'rank': rank
             })
 
-    return render(request, 'app/take_quiz.html', {'quiz': quiz})
+        # Calculer le pourcentage de réussite
+        percentage = round(score * 100 / total, 1) if total > 0 else 0
+
+        return render(
+            request,
+            'app/quiz_results.html',
+            {
+                'quiz': quiz,
+                'score': score,
+                'total': total,
+                'percentage': percentage,
+                'corrections': corrections,
+                'completion_time': int(completion_time),
+                'leaderboard': leaderboard[:3],  # Limiter à top 3
+                'level': quiz.level,
+            })
+
+    # Vérifier si l'utilisateur a déjà complété ce quiz
+    if UserQuizResult.objects.filter(user=request.user, quiz=quiz).exists():
+        messages.warning(
+            request,
+            "Vous avez déjà complété ce quiz. Les points ne seront pas comptabilisés."
+        )
+
+        return render(
+            request,
+            'app/take_quiz.html',
+            {
+                'quiz': quiz,
+                'score': saved_score,
+                'total': total,
+                'percentage': percentage,
+                'leaderboard': leaderboard[:3],  # Limiter à top 3
+                'level': quiz.level,
+            })
+
+    return render(request, 'app/take_quiz.html', {
+        'quiz': quiz,
+    })
 
 
 def my_results(request):
@@ -547,6 +755,8 @@ class QuizExportView(View):
         data = {
             "title": quiz.title,
             "description": quiz.description,
+            "theme": quiz.theme,  # Ajout du thème
+            "level": quiz.level,
             "questions": []
         }
 
@@ -573,22 +783,27 @@ class QuizExportView(View):
             'Content-Disposition'] = f'attachment; filename="{quiz.title}.csv"'
 
         writer = csv.writer(response)
-        # En-tête
+        # Modifiez l'en-tête pour inclure le thème
         writer.writerow([
-            'title', 'description', 'question_text', 'reponse1',
-            'reponse1_correct', 'reponse2', 'reponse2_correct', 'reponse3',
-            'reponse3_correct'
+            'title', 'description', 'theme', 'level', 'question_text',
+            'reponse1', 'reponse1_correct', 'reponse2', 'reponse2_correct',
+            'reponse3', 'reponse3_correct'
         ])
 
         for question in quiz.questions.all():
             writer.writerow([
-                quiz.title, quiz.description, question.text, question.reponse1,
-                int(question.reponse1_is_correct), question.reponse2,
-                int(question.reponse2_is_correct), question.reponse3,
+                quiz.title,
+                quiz.description,
+                quiz.theme,
+                quiz.level,
+                question.text,  # Ajout du thème
+                question.reponse1,
+                int(question.reponse1_is_correct),
+                question.reponse2,
+                int(question.reponse2_is_correct),
+                question.reponse3,
                 int(question.reponse3_is_correct)
             ])
-
-        return response
 
 
 class QuizImportView(View):
@@ -616,9 +831,11 @@ class QuizImportView(View):
     def import_from_json(self, request, file):
         data = json.load(file)
 
-        quiz = Quiz.objects.create(title=data['title'],
-                                   description=data['description'])
-
+        quiz = Quiz.objects.create(
+            title=data['title'],
+            description=data['description'],
+            theme=data.get('theme', 'autre'),  # Valeur par défaut si absent
+            level=data.get('level', 2))
         for q_data in data['questions']:
             Question.objects.create(
                 quiz=quiz,
@@ -642,9 +859,12 @@ class QuizImportView(View):
 
         for row in reader:
             if not quiz:
-                quiz = Quiz.objects.create(title=row['title'],
-                                           description=row['description'])
-
+                quiz = Quiz.objects.create(
+                    title=row['title'],
+                    description=row['description'],
+                    theme=row.get('theme',
+                                  'autre'),  # Valeur par défaut si absent
+                    level=int(row.get('level', 2)))
             Question.objects.create(
                 quiz=quiz,
                 text=row['question_text'],
@@ -704,26 +924,64 @@ def import_from_json(self, file):
 
 @login_required
 def leaderboard(request):
-    # Classement complet avec plus de détails
-    leaderboard = UserQuizResult.objects.values(
-        'user__username', 'user__id').annotate(
-            total_quizzes=Count('id'),
-            avg_score=Avg('score'),
-            last_activity=Max('completed_at')).order_by('-avg_score')
+    # 1. On récupère d'abord tous les utilisateurs ayant des résultats
+    users_with_results = User.objects.filter(
+        userquizresult__isnull=False).distinct()
+
+    # 2. On prépare une liste pour stocker les statistiques
+    leaderboard_data = []
+
+    for user in users_with_results:
+        # Récupère tous les résultats de l'utilisateur
+        results = UserQuizResult.objects.filter(user=user)
+
+        # Calcule le nombre total de quizzes tentés
+        total_quizzes = results.count()
+
+        # Calcule le score total (somme des scores)
+        total_score = results.aggregate(Sum('score'))['score__sum'] or 0
+
+        # Calcule le total des questions (somme des questions de chaque quiz)
+        total_questions = sum(result.quiz.questions.count()
+                              for result in results)
+
+        # Calcule le pourcentage moyen de réussite
+        if total_questions > 0:
+            avg_percentage = round((total_score / total_questions) * 100, 1)
+        else:
+            avg_percentage = 0
+
+        # Dernière activité
+        last_activity = results.aggregate(
+            Max('completed_at'))['completed_at__max']
+
+        leaderboard_data.append({
+            'user': user,
+            'total_quizzes': total_quizzes,
+            'avg_percentage': avg_percentage,
+            'last_activity': last_activity,
+            'total_score': total_score,
+            'total_questions': total_questions
+        })
+
+    # Trie par pourcentage moyen décroissant
+    leaderboard_data.sort(key=lambda x: x['avg_percentage'], reverse=True)
 
     # Position de l'utilisateur actuel
     user_position = None
-    for idx, entry in enumerate(leaderboard, start=1):
-        if entry['user__id'] == request.user.id:
+    for idx, entry in enumerate(leaderboard_data, start=1):
+        if entry['user'].id == request.user.id:
             user_position = {
                 'position': idx,
                 'total_quizzes': entry['total_quizzes'],
-                'avg_score': entry['avg_score']
+                'avg_percentage': entry['avg_percentage'],
+                'total_score': entry['total_score'],
+                'total_questions': entry['total_questions']
             }
             break
 
     context = {
-        'leaderboard': leaderboard[:100],  # Top 100
+        'leaderboard': leaderboard_data[:100],  # Top 100
         'user_position': user_position,
     }
     return render(request, 'app/leaderboard.html', context)
@@ -842,3 +1100,55 @@ def send_message(request):
         form = MessageForm()
 
     return render(request, 'app/send_message.html', {'form': form})
+
+
+@login_required
+def update_profile(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        first_name = request.POST.get(
+            'first_name',
+            '').strip()  # Convertit None en '' et supprime les espaces
+        last_name = request.POST.get(
+            'last_name',
+            '').strip()  # Convertit None en '' et supprime les espaces
+        current_password = request.POST.get('current_password')
+        new_password1 = request.POST.get('new_password1')
+        new_password2 = request.POST.get('new_password2')
+
+        user = request.user
+
+        # Mise à jour des champs seulement s'ils sont fournis
+        if email and email != user.email:
+            user.email = email
+            messages.success(request, 'Adresse email mise à jour avec succès.')
+
+        # Mise à jour du prénom (peut être vide)
+        user.first_name = first_name
+        if first_name:
+            messages.success(request, 'Prénom mis à jour avec succès.')
+
+        # Mise à jour du nom de famille (peut être vide)
+        user.last_name = last_name
+        if last_name:
+            messages.success(request, 'Nom de famille mis à jour avec succès.')
+
+        # Changement de mot de passe
+        if current_password and new_password1 and new_password2:
+            if user.check_password(current_password):
+                if new_password1 == new_password2:
+                    user.set_password(new_password1)
+                    messages.success(request,
+                                     'Mot de passe changé avec succès.')
+                    update_session_auth_hash(request, user)
+                else:
+                    messages.error(
+                        request,
+                        'Les nouveaux mots de passe ne correspondent pas.')
+            else:
+                messages.error(request, 'Mot de passe actuel incorrect.')
+
+        user.save()
+        return redirect('stats')
+
+    return redirect('stats')

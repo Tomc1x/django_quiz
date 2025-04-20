@@ -2,8 +2,8 @@
     <div class="row">
         <!-- Graphique des résultats -->
         <div class="col-md-8">
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
+            <div class="card card-effect mb-4">
+                <div class="card-header text-white">
                     <h5 class="mb-0">Historique des scores pour: {{ quiz.title }}</h5>
                 </div>
                 <div class="card-body">
@@ -14,14 +14,14 @@
 
         <!-- Statistiques résumées -->
         <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
+            <div class="card card-effect mb-4">
+                <div class="card-header text-white">
                     <h5 class="mb-0">Statistiques</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-6 mb-3">
-                            <div class="card bg-success text-white text-center">
+                            <div class="card card-effect bg-success text-white text-center">
                                 <div class="card-body">
                                     <h4 class="mb-0">{{ stats.avg_score|floatformat:1 }}</h4>
                                     <small>Moyenne</small>
@@ -29,7 +29,7 @@
                             </div>
                         </div>
                         <div class="col-6 mb-3">
-                            <div class="card bg-info text-white text-center">
+                            <div class="card card-effect bg-info text-white text-center">
                                 <div class="card-body">
                                     <h4 class="mb-0">{{ stats.attempts }}</h4>
                                     <small>Tentatives</small>
@@ -37,7 +37,7 @@
                             </div>
                         </div>
                         <div class="col-6 mb-3">
-                            <div class="card bg-warning text-dark text-center">
+                            <div class="card card-effect bg-warning text-dark text-center">
                                 <div class="card-body">
                                     <h4 class="mb-0">{{ stats.max_score }}</h4>
                                     <small>Meilleur score</small>
@@ -45,7 +45,7 @@
                             </div>
                         </div>
                         <div class="col-6 mb-3">
-                            <div class="card bg-danger text-white text-center">
+                            <div class="card card-effect bg-danger text-white text-center">
                                 <div class="card-body">
                                     <h4 class="mb-0">{{ stats.min_score }}</h4>
                                     <small>Pire score</small>

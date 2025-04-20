@@ -53,10 +53,25 @@ class RegisterForm(UserCreationForm):
                                      'class': 'form-control form-control-lg',
                                      'placeholder': 'Email (facultatif)'
                                  }))
+    first_name = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control form-control-lg',
+                'placeholder': 'Prénom (facultatif)'
+            }))
+    last_name = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control form-control-lg',
+                'placeholder': 'Nom (facultatif)'
+            }))
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password1', 'password2')
+        fields = ('first_name', 'last_name', 'username', 'email', 'password1',
+                  'password2')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -67,6 +82,7 @@ class RegisterForm(UserCreationForm):
             'placeholder':
             'Nom d\'utilisateur'
         })
+
         self.fields['password1'].widget.attrs.update({
             'class':
             'form-control form-control-lg',
@@ -97,7 +113,18 @@ class QuizForm(forms.ModelForm):
 
     class Meta:
         model = Quiz
-        fields = ['title', 'description', 'image']
+        fields = ['title', 'description', 'theme', 'level', 'image']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['title'].widget.attrs.update(
+            {'class': 'form-control form-control-lg'})
+        self.fields['theme'].widget.attrs.update(
+            {'class': 'form-select form-select-lg'})
+        self.fields['level'].widget.attrs.update(
+            {'class': 'form-select form-select-lg'})
+        self.fields['description'].widget.attrs.update(
+            {'class': 'form-control'})
 
 
 class QuestionForm(forms.ModelForm):

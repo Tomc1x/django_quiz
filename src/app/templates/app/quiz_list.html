@@ -1,300 +1,421 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<div class="container mt-5">
-    <div class="list-group">
-        <div class="container py-2">
-            <div class="h1 text-center text-dark" id="pageHeaderTitle">Quiz Disponibles</div>
-            {% for quiz in quizzes %}
+<img style="max-width: 100%;position: absolute;" src="{% static 'app/images/Rectangle.png' %}" alt="">
 
-            <article class="postcard light red text-black card">
-                <a class="postcard__img_link" href="{% url 'take_quiz' quiz.id %}">
-                    <img class="postcard__img" src="{{ quiz.image_url}}" alt="Image Title" />
-                </a>
-                <div class="postcard__text t-dark">
-                    <h1 class="postcard__title blue"><a href="{% url 'take_quiz' quiz.id %}">{{quiz.title}}</a></h1>
-                    <div class="postcard__subtitle small">
-                        <time datetime="2020-05-25 12:00:00">
-                            <i class="bi bi-calendar me-2"></i>{{quiz.created_at}}
-                        </time>
+<div class="container">
+    <div class="d-flex gap-3 mt-5 flex-wrap justify-content-center">
+
+        <div class="card">
+            <div class="card-header d-flex gap-2">
+                <i class="bi bi-person-circle"></i>
+                Mon score
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-center align-items-center mt-4">
+                    <div class="position-relative" style="width: 200px; height: 200px;">
+                        <div class="progress-circle position-absolute top-0 start-0 w-100 h-100">
+                            <svg class="w-100 h-100" viewBox="0 0 36 36">
+                                <path class="circle-bg" d="M18 2.0845
+                                    a 15.9155 15.9155 0 0 1 0 31.831
+                                    a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e6e6e6" stroke-width="3">
+                                </path>
+                                <path class="circle" d="M18 2.0845
+                                    a 15.9155 15.9155 0 0 1 0 31.831
+                                    a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#4F4845" stroke-width="3"
+                                    stroke-dasharray="{{percentage}}, 100" stroke-linecap="round"></path>
+                            </svg>
+                        </div>
+                        <div class="position-absolute top-50 start-50 translate-middle text-center">
+                            <h4 class="mb-0">{{total_score}} pts</h4>
+                            <small>/{{max_points}} pts</small>
+                        </div>
                     </div>
-                    <div class="postcard__bar"></div>
-                    <div class="postcard__preview-txt ">{{quiz.description}}</div>
-                    <ul class="postcard__tagbox">
-                        <li class="tag__item"><i class="bi bi-tag me-2"></i>{{ quiz.questions.count }} questions</li>
-                        <li class="tag__item play blue">
-                            <a href="{% url 'take_quiz' quiz.id %}"><i class="bi bi-play me-2"></i>Faire le quiz</a>
-                        </li>
-
-                    </ul>
                 </div>
-            </article>
-
-            {% endfor %}
+            </div>
 
         </div>
 
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-trophy"></i>
+                Top 3
+            </div>
+            <div class="card-body">
+
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="50px">#</th>
+                            <th>Utilisateur</th>
+                            <th class="text-center">Quiz Complétés</th>
+                            <th class="text-center">Score Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in leaderboard %}
+                        <tr class="{% if user.id == request.user.id %}table-primary{% endif %}">
+                            <td class="fw-bold">{{ forloop.counter }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar me-3">
+                                        <span class="avatar-initial  rounded-circle">
+                                            {{ user.username|first|upper }}</span>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">{{ user.username }}</div>
+
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">{{ user.total_quizzes }}</td>
+                            <td class="text-center">
+                                {{ user.total_points }} pts
+
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+
+
+
+    <h1 class="mt-3">Quiz Disponibles</h1>
+    <div class="d-flex justify-content-center align-items-center gap-3 mt-3">
+        <h2 class="text-center text-nowrap">
+            <i class="bi bi-patch-check"></i>
+            Nos recommandations
+        </h2>
+        <div style="background: black; height: 3px;border-radius: 3px; width: 100%;"></div>
+    </div>
+    <div class="quiz-container mt-4 " data-card>
+
+        {% for quiz in quizzes|slice:":6" %}
+        <a class="carte" href="{% url 'take_quiz' quiz.id %}">
+            <div class="carte-container">
+
+                <img class="carte-img" {%if quiz.image_url%}src="{{quiz.image_url}}"
+                    {%else%}src="{%static 'app/images/defaultimg.png'%}" {%endif%} alt="Title" />
+
+                <div class="carte-body">
+                    <div class="d-flex flex-nowrap">
+                        {%if quiz.level == 1%}
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star"></i>
+                        <i class="bi bi-star"></i>
+                        {%elif quiz.level == 2%}
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star"></i>
+                        {%elif quiz.level == 3%}
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        {%endif%}
+                    </div>
+                    <h4 class="carte-title text-center">{{quiz.title}}</h4>
+                    <p class="carte-text text-center">{{quiz.description}}</p>
+                </div>
+            </div>
+            <div class="carte-footer">
+                <div class="niveau d-flex gap-2 ">
+                    <div class="d-flex flex-nowrap">
+                        {%if quiz.level == 1%}
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star"></i>
+                        <i class="bi bi-star"></i>
+                        {%elif quiz.level == 2%}
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star"></i>
+                        {%elif quiz.level == 3%}
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        {%endif%}
+                    </div>
+                    <h5> - {{quiz.title}}</h5>
+                </div>
+            </div>
+
+        </a>
+        {%endfor%}
+    </div>
+
+
+
+    {% for theme, theme_quizzes in quizzes_by_theme %}
+    <div class="theme-section mb-5">
+
+        <div class="d-flex justify-content-center align-items-center gap-3 mt-3">
+
+            <h2 class="text-center text-nowrap"> <i class="bi bi-collection"></i> {{ theme|default:"Sans thème" }}</h2>
+            <div style="background: black; height: 3px;border-radius: 3px; width: 100%;"></div>
+        </div>
+
+        <div class="quiz-container">
+            {% for quiz in theme_quizzes %}
+            <a class="carte" href="{% url 'take_quiz' quiz.id %}">
+                <div class="carte-container">
+
+                    <img class="carte-img" {%if quiz.image_url%}src="{{quiz.image_url}}"
+                        {%else%}src="{%static 'app/images/defaultimg.png'%}" {%endif%} alt="Title" />
+                    <div class="carte-body">
+                        <div class="d-flex flex-nowrap">
+                            {%if quiz.level == 1%}
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                            {%elif quiz.level == 2%}
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star"></i>
+                            {%elif quiz.level == 3%}
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            {%endif%}
+                        </div>
+                        <h4 class="carte-title text-center">{{quiz.title}}</h4>
+                        <p class="carte-text text-center">{{quiz.description}}</p>
+                    </div>
+                </div>
+                <div class="carte-footer">
+                    <div class="niveau d-flex gap-2 ">
+                        <div class="d-flex flex-nowrap">
+                            {%if quiz.level == 1%}
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                            {%elif quiz.level == 2%}
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star"></i>
+                            {%elif quiz.level == 3%}
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            {%endif%}
+                        </div>
+                        <h5> - {{quiz.title}}</h5>
+                    </div>
+                </div>
+
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+
+
+
+    <div class="d-flex justify-content-center align-items-center gap-3 mt-3">
+        <h2 class="text-center text-nowrap">
+            <i class="bi bi-check-circle"></i>
+            Quiz terminés
+        </h2>
+        <div style="background: black; height: 3px;border-radius: 3px; width: 100%;"></div>
+    </div>
+    <div class="quiz-container mt-4 " data-card>
+
+        {% for quiz_data in completed_quizzes_data%}
+        {% with quiz=quiz_data.quiz %}
+        <a class="carte" href="{% url 'take_quiz' quiz.id %}">
+
+            <div class="carte-container">
+
+                <img class="carte-img" {%if quiz.image_url%}src="{{quiz.image_url}}"
+                    {%else%}src="{%static 'app/images/defaultimg.png'%}" {%endif%} alt="Title" />
+
+                <div class="carte-result">
+                    <div class="d-flex justify-content-center align-items-center">
+                        <div class="position-relative" style="width: 150px; height: 150px;">
+                            <div class="progress-circle position-absolute top-0 start-0 w-100 h-100">
+                                <svg class="w-100 h-100" viewBox="0 0 36 36">
+                                    <path class="circle-bg" d="M18 2.0845
+                                            a 15.9155 15.9155 0 0 1 0 31.831
+                                            a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e6e6e6"
+                                        stroke-width="3"></path>
+                                    <path class="circle" d="M18 2.0845
+                                            a 15.9155 15.9155 0 0 1 0 31.831
+                                            a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#ce6b28"
+                                        stroke-width="3" stroke-dasharray="{{quiz_data.percentage}}, 100"
+                                        stroke-linecap="round">
+                                    </path>
+                                </svg>
+                            </div>
+                            <div class="position-absolute top-50 start-50 translate-middle text-center  text-white">
+                                <h4 class="mb-0 fs-5">{{quiz_data.user_score}}</h4>
+                                <small>/{{quiz_data.total_questions}}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="carte-body">
+                    <div class="d-flex flex-nowrap">
+                        {%if quiz.level == 1%}
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star"></i>
+                        <i class="bi bi-star"></i>
+                        {%elif quiz.level == 2%}
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star"></i>
+                        {%elif quiz.level == 3%}
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        {%endif%}
+                    </div>
+                    <h4 class="carte-title text-center">{{quiz.title}}</h4>
+                    <p class="carte-text text-center">{{quiz.description}}</p>
+
+                    <div class="d-flex justify-content-center align-items-center">
+                        <div class="position-relative" style="width: 100px; height: 100px;">
+                            <div class="progress-circle position-absolute top-0 start-0 w-100 h-100">
+                                <svg class="w-100 h-100" viewBox="0 0 36 36">
+                                    <path class="circle-bg" d="M18 2.0845
+                                                a 15.9155 15.9155 0 0 1 0 31.831
+                                                a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e6e6e6"
+                                        stroke-width="2"></path>
+                                    <path class="circle" d="M18 2.0845
+                                                a 15.9155 15.9155 0 0 1 0 31.831
+                                                a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#ce6b28"
+                                        stroke-width="2" stroke-dasharray="{{quiz_data.percentage}}, 100"
+                                        stroke-linecap="round">
+                                    </path>
+                                </svg>
+                            </div>
+                            <div class="position-absolute top-50 start-50 translate-middle text-center  text-white">
+                                <h4 class="mb-0 fs-5">{{quiz_data.user_score}}</h4>
+                                <small>/{{quiz_data.total_questions}}</small>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </div>
+
+            <div class="carte-footer">
+                <div class="niveau d-flex gap-2 ">
+                    <div class="d-flex flex-nowrap">
+                        {%if quiz.level == 1%}
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star"></i>
+                        <i class="bi bi-star"></i>
+                        {%elif quiz.level == 2%}
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star"></i>
+                        {%elif quiz.level == 3%}
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        {%endif%}
+                    </div>
+                    <h5> - {{quiz.title}}</h5>
+                </div>
+            </div>
+
+        </a>
+        {% endwith %}
+        {% endfor %}
     </div>
 </div>
+
 <style>
-    @import url("https://fonts.googleapis.com/css2?family=Baloo+2&display=swap");
-
-    :root {
-        --main-green: #79dd09;
-        --main-green-rgb-015: rgba(121, 221, 9, 0.1);
-        --main-yellow: #bdbb49;
-        --main-yellow-rgb-015: rgba(189, 187, 73, 0.1);
-        --main-red: #bd150b;
-        --main-red-rgb-015: rgba(189, 21, 11, 0.1);
-        --main-blue: #0076bd;
-        --main-blue-rgb-015: rgba(0, 118, 189, 0.1);
-    }
-
-    .dark {
-        background: #110f16;
-    }
-
-    .light {
-        background: #f3f5f7;
-    }
-
-    a,
-    a:hover {
-        text-decoration: none;
-        transition: color 0.3s ease-in-out;
-    }
-
-    #pageHeaderTitle {
-        margin: 2rem 0;
-        text-transform: uppercase;
-        text-align: center;
-        font-size: 2.5rem;
-    }
-
-    /* Cards */
-    .postcard {
+    .quiz-container {
+        display: flex;
         flex-wrap: wrap;
-        display: flex;
-        box-shadow: 0 4px 21px -12px rgba(0, 0, 0, 0.66);
-        border-radius: 10px;
-        margin: 0 0 2rem 0;
-        overflow: hidden;
-        position: relative;
-        color: #ffffff;
-    }
-
-    .postcard.dark {
-        background-color: #18151f;
-    }
-
-    .postcard.light {
-        background-color: #e1e5ea;
-    }
-
-    .postcard .postcard__title {
-        font-size: 1.75rem;
-    }
-
-    .postcard .postcard__img {
-        max-height: 180px;
-        width: 100%;
-        object-fit: cover;
-        position: relative;
-    }
-
-    .postcard .postcard__img_link {
-        display: contents;
-    }
-
-    .postcard .postcard__bar {
-        width: 50px;
-        height: 10px;
-        margin: 10px 0;
-        border-radius: 5px;
-        background-color: #424242;
-        transition: width 0.2s ease;
-    }
-
-    .postcard .postcard__text {
-        padding: 1.5rem;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .postcard .postcard__preview-txt {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        text-align: justify;
-        height: 100%;
-    }
-
-    .postcard .postcard__tagbox {
-        display: flex;
-        flex-flow: row wrap;
-        font-size: 14px;
-        margin: 20px 0 0 0;
-        padding: 0;
         justify-content: center;
+        gap: 2rem;
+        margin-bottom: 3rem;
+        text-decoration: none;
     }
 
-    .postcard .postcard__tagbox .tag__item {
-        display: inline-block;
-        background: rgba(83, 83, 83, 0.4);
-        border-radius: 3px;
-        padding: 2.5px 10px;
-        margin: 0 5px 5px 0;
-        cursor: default;
-        user-select: none;
-        transition: background-color 0.3s;
+    .quiz-container .carte {
+        text-decoration: none;
+        width: 310px;
+
     }
 
-    .postcard .postcard__tagbox .tag__item:hover {
-        background: rgba(83, 83, 83, 0.8);
+    .quiz-container .carte .carte-container {
+        width: 310px;
+        height: 310px;
+        margin: 10px;
+        transition: transform 0.3s;
+        text-decoration: none;
+        overflow: hidden;
+
     }
 
-    .postcard:before {
-        content: "";
+    .quiz-container .carte .carte-container .carte-img {
         position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        background-image: linear-gradient(-70deg, #424242, transparent 50%);
+        z-index: 0;
+        width: 310px;
+        height: 310px;
+        object-fit: cover;
+    }
+
+    .quiz-container .carte .carte-container .carte-body {
+        opacity: 0;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 1;
+        height: 100%;
+        position: relative;
+        background-image: url('{% static "app/images/topographyContact.svg" %}');
+        background-size: cover;
+        background-position: center bottom;
+        background-repeat: no-repeat;
+        transition: background-color 0.3s ease, transform 0.3s ease, background-position 0.5s ease;
+        padding: 10px;
+
+    }
+
+    .quiz-container .carte .carte-footer {
+        color: black;
+    }
+
+    .quiz-container .carte:hover .carte-body {
         opacity: 1;
-        border-radius: 10px;
+        background-color: #332b2ac7;
+
+        background-position: center top;
     }
 
-    .postcard:hover .postcard__bar {
-        width: 100px;
+
+    .quiz-container .carte .carte-container .carte-result {
+
+        position: relative;
+        z-index: 1;
+        display: flex;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+        background-color: #332b2ac7;
+        transition: opacity 1s ease, height 0.5s ease;
+        background-image: url('{% static "app/images/topographyContact.svg" %}');
+        background-size: cover;
+        background-position: center bottom;
+        background-repeat: no-repeat;
+
     }
 
-    @media screen and (min-width: 769px) {
-        .postcard {
-            flex-wrap: inherit;
-        }
-
-        .postcard .postcard__title {
-            font-size: 2rem;
-        }
-
-        .postcard .postcard__tagbox {
-            justify-content: start;
-        }
-
-        .postcard .postcard__img {
-            max-width: 300px;
-            max-height: 100%;
-            transition: transform 0.3s ease;
-        }
-
-        .postcard .postcard__text {
-            padding: 3rem;
-            width: 100%;
-        }
-
-        .postcard:hover .postcard__img {
-            transform: scale(1.1);
-        }
-
-        .postcard:nth-child(2n+1) {
-            flex-direction: row;
-        }
-
-        .postcard:nth-child(2n+0) {
-            flex-direction: row-reverse;
-        }
-    }
-
-    @media screen and (min-width: 1024px) {
-        .postcard .postcard__text {
-            padding: 2rem 3.5rem;
-        }
-    }
-
-    /* COLORS */
-    .postcard .postcard__tagbox .green.play:hover {
-        background: var(--main-green);
-        color: black;
-    }
-
-    .green .postcard__title:hover {
-        color: var(--main-green);
-    }
-
-    .green .postcard__bar {
-        background-color: var(--main-green);
-    }
-
-    .green::before {
-        background-image: linear-gradient(-30deg, var(--main-green-rgb-015), transparent 50%);
-    }
-
-    .postcard .postcard__tagbox .blue.play:hover {
-        background: var(--main-blue);
-    }
-
-    .blue .postcard__title:hover {
-        color: var(--main-blue);
-    }
-
-    .blue .postcard__bar {
-        background-color: var(--main-blue);
-    }
-
-    .blue::before {
-        background-image: linear-gradient(-30deg, var(--main-blue-rgb-015), transparent 50%);
-    }
-
-    .postcard .postcard__tagbox .red.play:hover {
-        background: var(--main-red);
-    }
-
-    .red .postcard__title:hover {
-        color: var(--main-red);
-    }
-
-    .red .postcard__bar {
-        background-color: var(--main-red);
-    }
-
-    .red::before {
-        background-image: linear-gradient(-30deg, var(--main-red-rgb-015), transparent 50%);
-    }
-
-    .postcard .postcard__tagbox .yellow.play:hover {
-        background: var(--main-yellow);
-        color: black;
-    }
-
-    .yellow .postcard__title:hover {
-        color: var(--main-yellow);
-    }
-
-    .yellow .postcard__bar {
-        background-color: var(--main-yellow);
-    }
-
-    .yellow::before {
-        background-image: linear-gradient(-30deg, var(--main-yellow-rgb-015), transparent 50%);
-    }
-
-    @media screen and (min-width: 769px) {
-        .green::before {
-            background-image: linear-gradient(-80deg, var(--main-green-rgb-015), transparent 50%);
-        }
-
-        .blue::before {
-            background-image: linear-gradient(-80deg, var(--main-blue-rgb-015), transparent 50%);
-        }
-
-        .red::before {
-            background-image: linear-gradient(-80deg, var(--main-red-rgb-015), transparent 50%);
-        }
-
-        .yellow::before {
-            background-image: linear-gradient(-80deg, var(--main-yellow-rgb-015), transparent 50%);
-        }
+    .quiz-container .carte:hover .carte-result {
+        opacity: 0;
+        height: 0;
     }
 </style>
 
